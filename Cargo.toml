@@ -1,0 +1,20 @@
+[workspace]
+resolver = "2"
+members = ["admin",
+    "client",
+    "server", 
+    "shared",
+]
+
+[workspace.package]
+edition = "2021"
+version = "0.1.0"
+license = "MIT"
+
+[workspace.dependencies]
+serde = {version = "1", features = ["derive"]}
+serde_json = "1"
+eframe = "0.36"
+axum = "0.8.9"
+reqwest = { version = "0.13.5", features = ["json", "blocking"] }
+clap = { version = "4.6.7", features = ["derive"] }
