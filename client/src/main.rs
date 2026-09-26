@@ -42,7 +42,13 @@ impl ClientApp {
             error: None,
             last_poll: None,
             server: None,
-            server_input: String::from("192.168.1.0:3000"),
+            server_input: String::new(),
+        }
+    }
+
+    fn set_server(&mut self) {
+        if !self.server_input.is_empty() {
+            self.server = Some(self.server_input.clone());
         }
     }
 
@@ -106,7 +112,7 @@ impl ClientApp {
 
         let Some(id) = self.comp_id else { return };
 
-        let url = format!("{server}/api/comps/{id}/{action}");
+        let url = format!("http://{server}/api/comps/{id}/{action}");
         match self.http.post(&url).send() {
             Ok(response) => {
                 if !response.status().is_success() {
@@ -142,25 +148,25 @@ impl eframe::App for ClientApp {
 
                 ui.add(
                     egui::TextEdit::singleline(&mut self.input)
-                        .desired_width(80.0)
+                        .desired_width(30.0)
                         .hint_text("5"),
                 );
                 ui.add_space(10.0);
 
                 ui.add(
                     egui::TextEdit::singleline(&mut self.server_input)
-                        .desired_width(80.0)
-                        .hint_text("5"),
+                        .desired_width(160.0)
+                        .hint_text("192.168.0.1:3000"),
                 );
 
                 ui.add_space(20.0);
                 if ui.button("Подключиться").clicked() {
+                    self.set_server();
                     if let Ok(id) = self.input.trim().parse::<u8>() {
                         self.register(id);
                     } else {
                         self.error = Some("Введите число".into());
                     }
-                    self.server = Some(self.server_input.clone());
                 }
             } else {
                 ui.heading(format!("Номер стола: {}", self.comp_id.unwrap()));
