@@ -2,8 +2,6 @@ use eframe::egui;
 use std::time::{Duration, Instant};
 use shared::{CompState, RegisterRequest, Status};
 
-const SERVER: &str = "http://127.0.0.1:3000";
-
 fn main() -> eframe::Result<()> {
     // create window structure
     let app = ClientApp::new();
@@ -26,6 +24,8 @@ struct ClientApp {
     state: Option<CompState>,
     error: Option<String>,
     last_poll: Option<Instant>,
+    server: Option<String>,
+    server_input: String,
 }
 
 impl ClientApp {
@@ -41,11 +41,15 @@ impl ClientApp {
             state: None,
             error: None,
             last_poll: None,
+            server: None,
+            server_input: String::from("192.168.1.0:3000"),
         }
     }
 
     fn register(&mut self, set_id: u8) -> bool {
-        let url = format!("{SERVER}/api/register");
+        let Some(server) = self.server.clone() else { return false; };
+
+        let url = format!("http://{}/api/register", server);
         let request = RegisterRequest {
             comp_id: set_id,
             hostname: std::env::var("HOSTNAME").ok(),
@@ -72,6 +76,8 @@ impl ClientApp {
     }
 
     fn poll(&mut self) {
+        let Some(server) = self.server.clone() else { return; };
+
         let Some(id) = self.comp_id else { return };
 
         if let Some(t) = self.last_poll {
@@ -82,7 +88,7 @@ impl ClientApp {
 
         self.last_poll = Some(Instant::now());
 
-        let url = format!("{SERVER}/api/comps/{id}");
+        let url = format!("http://{}/api/comps/{id}", server);
         match self.http.get(&url).send() {
             Ok(response) => match response.json::<CompState>() {
                 Ok(s) => {
@@ -96,9 +102,11 @@ impl ClientApp {
     }
 
     fn post_action(&mut self, action: &str) {
+        let Some(server) = self.server.clone() else { return };
+
         let Some(id) = self.comp_id else { return };
 
-        let url = format!("{SERVER}/api/comps/{id}/{action}");
+        let url = format!("{server}/api/comps/{id}/{action}");
         match self.http.post(&url).send() {
             Ok(response) => {
                 if !response.status().is_success() {
@@ -128,12 +136,19 @@ impl eframe::App for ClientApp {
 
             ui.add_space(40.0);
 
-            if self.comp_id.is_none() {
+            if self.comp_id.is_none() | self.server.is_none() {
                 ui.heading("Номер рабочего стола");
-                ui.add_space(20.0);
+                ui.add_space(10.0);
 
                 ui.add(
                     egui::TextEdit::singleline(&mut self.input)
+                        .desired_width(80.0)
+                        .hint_text("5"),
+                );
+                ui.add_space(10.0);
+
+                ui.add(
+                    egui::TextEdit::singleline(&mut self.server_input)
                         .desired_width(80.0)
                         .hint_text("5"),
                 );
@@ -145,6 +160,7 @@ impl eframe::App for ClientApp {
                     } else {
                         self.error = Some("Введите число".into());
                     }
+                    self.server = Some(self.server_input.clone());
                 }
             } else {
                 ui.heading(format!("Номер стола: {}", self.comp_id.unwrap()));

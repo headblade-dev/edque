@@ -17,3 +17,10 @@ serde_json = "1"
 eframe = "0.36"
 axum = "0.8.9"
 reqwest = { version = "0.13.5", features = ["json", "blocking"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
