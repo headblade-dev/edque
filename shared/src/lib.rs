@@ -14,16 +14,18 @@ pub enum Status {
     Done,
     Offline,
     ReviewRequired,
+    Banned,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub struct CompState {
     pub comp_id: u8,
     pub status: Status,
     pub hostname: Option<String>,
     pub score: Option<Score>,
-    pub started_at: Option<String>,
-    pub finished_at: Option<String>,
+    pub started_at: Option<u64>,
+    pub finished_at: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -35,6 +37,11 @@ pub struct RegisterRequest {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ScoreRequest {
     pub score: Score,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ReportRequest {
+    pub comp_ids: Vec<u8>,
 }
 
 pub fn format_score(score: Score) -> String {
@@ -69,6 +76,25 @@ pub fn parse_score(s: &str) -> Option<Score> {
         return None;
     }
     Some(total)
+}
+
+pub fn format_duration(start: u64, end: u64) -> String {
+    let secs = end.saturating_sub(start);
+    format!("{}:{:02}", secs / 60, secs % 60)
+}
+
+pub fn format_time(secs: Option<u64>) -> String {
+    let Some(t) = secs else { return "-".to_string() };
+
+    let tz_offset = 4 * 3600;
+    let local = t + tz_offset;
+
+    let secs_in_day = local % 86400;
+    let h = secs_in_day / 3600;
+    let m = (secs_in_day % 3600) / 60;
+    let s =  (secs_in_day) % 60;
+
+    format!("{:02}:{:02}:{:02}", h, m ,s)
 }
 
 #[cfg(test)]

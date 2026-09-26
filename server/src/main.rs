@@ -4,7 +4,7 @@ use axum::{
     Json, Router, extract::{Path, State}, http::StatusCode, routing::{get, post},
 };
 
-use shared::{CompState, RegisterRequest, ScoreRequest, Status, MAX_SCORE};
+use shared::{CompState, RegisterRequest, ScoreRequest, ReportRequest, Status, MAX_SCORE};
 
 use std::{
     collections::HashMap, path::PathBuf, sync::{Arc, RwLock}, time::{Duration, SystemTime, UNIX_EPOCH},
@@ -49,6 +49,9 @@ async fn main() {
         .route("/api/comps/{id}/finish", post(finish))
         .route("/api/comps/{id}/score", post(set_score))
         .route("/api/comps/{id}/reset", post(reset))
+        .route("/api/comps/{id}/ban", post(ban))
+        .route("/api/comps/{id}/resume", post(resume))
+        .route("/api/report", post(report))
         .with_state(db);
 
     let listener = tokio::net::TcpListener::bind(LISTEN_ON)
@@ -163,6 +166,7 @@ async fn set_score(
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
     entry.score = Some(request.score);
+    entry.status = Status::Done;
 
     println!("POST /api/comp/{}/score score={}", comp_id, request.score);
 
@@ -176,20 +180,82 @@ async fn reset(
     let mut db = db.write().unwrap();
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
+    do_reset(entry);
+    println!("POST /api/comp/{}/reset", comp_id);
+    Ok(Json(entry.clone()))
+}
+
+async fn ban(
+    State(db): State<Db>,
+    Path(comp_id): Path<u8>,
+) -> Result<Json<CompState>, StatusCode> {
+    let mut db = db.write().unwrap();
+    let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
+
+    do_reset(entry);
+    entry.status = Status::Banned;
+    println!("POST /api/comp/{}/reset", comp_id);
+    Ok(Json(entry.clone()))
+}
+
+async fn resume(
+    State(db): State<Db>,
+    Path(comp_id): Path<u8>,
+) -> Result<Json<CompState>, StatusCode> {
+    let mut db = db.write().unwrap();
+    let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
+
+    match entry.status {
+        Status::Offline | Status::Idle | Status::Banned => return Err(StatusCode::BAD_REQUEST),
+        Status::Working => return Ok(Json(entry.clone())),
+        _ => ()
+    }
+
+    entry.status = Status::Working;
+    println!("POST /api/comps/{}/resume", comp_id);
+    Ok(Json(entry.clone()))
+}
+
+async fn report(
+    State(db): State<Db>,
+    Json(request): Json<ReportRequest>
+) -> Result<String, StatusCode> {
+    let db = db.read().unwrap();
+    let mut out = String::from("\u{FEFF}");
+    out.push_str("ID,Длительность,Баллы\n");
+
+    for comp_id in request.comp_ids {
+        if let Some(entry) = db.get(&comp_id) {
+            let duration = match (entry.started_at, entry.finished_at) {
+                (Some(a), Some(b)) => {
+                    (b.saturating_sub(a)).to_string()
+                }
+                _ => String::new(),
+            };
+
+            let score = entry.score.map(shared::format_score).unwrap_or_default();
+
+            out.push_str(&format!(
+                "{},{},{}\n",
+                entry.comp_id, duration, score
+            ));
+        }
+    }
+
+    Ok(out)
+}
+
+fn do_reset(entry: &mut CompState) {
     entry.status = Status::Idle;
     entry.started_at = None;
     entry.finished_at = None;
     entry.score = None;
-
-    println!("POST /api/comp/{}/reset", comp_id);
-
-    Ok(Json(entry.clone()))
 }
 
-fn now_ts() -> String {
+fn now_ts() -> u64 {
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0);
-    secs.to_string()
+    secs
 }

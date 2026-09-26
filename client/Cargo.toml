@@ -1,0 +1,11 @@
+[package]
+name = "edque-client"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+shared = { path = "../shared" }
+eframe.workspace = true
+reqwest.workspace = true
