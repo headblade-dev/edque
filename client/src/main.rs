@@ -2,18 +2,27 @@ use eframe::egui;
 use std::time::{Duration, Instant};
 use shared::{CompState, RegisterRequest, Status};
 
+mod theme;
+
 fn main() -> eframe::Result<()> {
     // create window structure
     let app = ClientApp::new();
 
     // window parameters (size, pos, icon, etc.)
-    let options = eframe::NativeOptions::default();
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([300.0, 200.0]),
+        ..Default::default()
+    };
 
     // start window
     eframe::run_native(
         "edque client", 
         options, 
-        Box::new(|_cc| Ok(Box::new(app)))
+        Box::new(|cc| {
+            theme::apply(&cc.egui_ctx);
+            Ok(Box::new(app))
+        })
     )
 }
 
@@ -129,6 +138,10 @@ impl ClientApp {
 }
 
 impl eframe::App for ClientApp {
+    fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
+        theme::get_window_bg_color()
+    }
+
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.poll();
         ui.ctx().request_repaint_after(Duration::from_secs(1));
@@ -160,7 +173,10 @@ impl eframe::App for ClientApp {
                 );
 
                 ui.add_space(20.0);
-                if ui.button("Подключиться").clicked() {
+                
+                if ui.add(
+                    egui::Button::new("Подключиться")
+                ).clicked() {
                     self.set_server();
                     if let Ok(id) = self.input.trim().parse::<u8>() {
                         self.register(id);
