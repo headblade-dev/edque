@@ -1,22 +1,27 @@
 use eframe::egui::{self, Color32};
 
-pub const BG: Color32 = Color32::from_rgb(248, 248, 255);
+pub const BG: Color32 = Color32::from_rgb(255, 255, 255);
 pub const PANEL_BG: Color32 = Color32::from_rgb(255, 255, 255);
-pub const TEXT: Color32 = Color32::from_rgb(30, 30, 30);
-pub const TEXT_DIM: Color32 = Color32::from_rgb(120, 120, 120);
-pub const BORDER_COLOR: Color32 = Color32::from_rgb(200, 200, 200);
-pub const ACCENT: Color32 = Color32::from_rgb(200, 30, 30);
+pub const TEXT: Color32 = Color32::from_rgb(23, 32, 51);
+pub const TEXT_ON_ACCENT: Color32 = Color32::from_rgb(255, 255, 255);
+pub const TEXT_DIM: Color32 = Color32::from_rgb(139, 149, 167);
+pub const BORDER_COLOR: Color32 = Color32::from_rgb(201, 208, 219);
+pub const ACCENT: Color32 = Color32::from_rgb(234, 65, 65);
 
-pub const OK: Color32 = Color32::from_rgb(50, 140, 70);
-pub const ERR: Color32 = Color32::from_rgb(140, 56, 50);
-pub const WARN: Color32 = Color32::from_rgb(166, 136, 60);
+pub const OK: Color32 = Color32::from_rgb(65, 230, 65);
+pub const ERR: Color32 = Color32::from_rgb(230, 65, 65);
+pub const WARN: Color32 = Color32::from_rgb(230, 230, 65);
 
-pub const IDLE: Color32 = Color32::from_rgb(160, 160, 160);
-pub const WORKING: Color32 = Color32::from_rgb(60, 120, 200);
-pub const REVIEW: Color32 = Color32::from_rgb(220, 170, 60);
-pub const DONE: Color32 = Color32::from_rgb(80, 160, 80);
-pub const BANNED: Color32 = Color32::from_rgb(200, 60, 60);
-pub const OFFLINE: Color32 = Color32::from_rgb(100, 100, 100);
+pub const IDLE: Color32 = Color32::from_rgb(241, 241, 241);
+pub const IDLE_FG: Color32 = Color32::from_rgb(101, 101, 101);
+pub const WORKING: Color32 = Color32::from_rgb(234, 247, 240);
+pub const WORKING_FG: Color32 = Color32::from_rgb(36, 166, 101);
+pub const REVIEW: Color32 = Color32::from_rgb(247, 245, 234);
+pub const REVIEW_FG: Color32 = Color32::from_rgb(166, 144, 36);
+pub const DONE: Color32 = Color32::from_rgb(234, 241, 247);
+pub const DONE_FG: Color32 = Color32::from_rgb(36, 101, 166);
+pub const BANNED: Color32 = Color32::from_rgb(247, 234, 234);
+pub const BANNED_FG: Color32 = Color32::from_rgb(166, 36, 36);
 
 pub const BORDER_RADIUS: egui::CornerRadius = egui::CornerRadius::same(4);
 
@@ -36,10 +41,10 @@ pub fn apply(ctx: &egui::Context) {
     visuals.menu_corner_radius = BORDER_RADIUS;
 
     // buttons
-    visuals.widgets.inactive.weak_bg_fill = BUTTON_INACTIVE_BG;
-    visuals.widgets.inactive.bg_stroke.color = BORDER_COLOR;
-    visuals.widgets.hovered.weak_bg_fill = BUTTON_HOVER_BG;
-    visuals.widgets.active.weak_bg_fill = BUTTON_INACTIVE_BG;
+    visuals.widgets.inactive.corner_radius = egui::CornerRadius::same(8);
+    visuals.widgets.active.corner_radius = egui::CornerRadius::same(8);
+    visuals.widgets.hovered.corner_radius = egui::CornerRadius::same(8);
+    visuals.widgets.noninteractive.corner_radius = egui::CornerRadius::same(8);
 
     ctx.set_visuals(visuals);
 }

@@ -1,8 +1,17 @@
 use eframe::egui;
-use std::time::{Duration, Instant};
+use std::{
+    time::{Duration, Instant},
+    sync::Arc,
+};
 use shared::{CompState, RegisterRequest, Status};
 
+
 mod theme;
+
+enum ClientField {
+    CompID,
+    Server
+}
 
 fn main() -> eframe::Result<()> {
     // create window structure
@@ -11,7 +20,7 @@ fn main() -> eframe::Result<()> {
     // window parameters (size, pos, icon, etc.)
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([300.0, 200.0]),
+            .with_inner_size([560.0, 373.0]),
         ..Default::default()
     };
 
@@ -20,6 +29,35 @@ fn main() -> eframe::Result<()> {
         "edque client", 
         options, 
         Box::new(|cc| {
+            let mut fonts = egui::FontDefinitions::default();
+            fonts.font_data.insert(
+                "Inter".to_owned(), 
+                Arc::new(egui::FontData::from_static(include_bytes!("../../assets/fonts/Inter.ttf"))),
+            );
+            fonts.font_data.insert(
+                "Inter-SemiBold".to_owned(), 
+                Arc::new(egui::FontData::from_static(include_bytes!("../../assets/fonts/Inter-SemiBold.ttf"))),
+            );
+            fonts.font_data.insert(
+                "Inter-Bold".to_owned(), 
+                Arc::new(egui::FontData::from_static(include_bytes!("../../assets/fonts/Inter-Bold.ttf"))),
+            );
+
+            fonts.families.insert(
+                egui::FontFamily::Name("Inter".into()),
+                vec!["Inter".to_owned()]
+            );
+            fonts.families.insert(
+                egui::FontFamily::Name("Inter-SemiBold".into()),
+                vec!["Inter-SemiBold".to_owned()]
+            );
+            fonts.families.insert(
+                egui::FontFamily::Name("Inter-Bold".into()),
+                vec!["Inter-Bold".to_owned()]
+            );
+
+            cc.egui_ctx.set_fonts(fonts);
+
             theme::apply(&cc.egui_ctx);
             Ok(Box::new(app))
         })
@@ -29,12 +67,14 @@ fn main() -> eframe::Result<()> {
 struct ClientApp {
     http: reqwest::blocking::Client,
     comp_id: Option<u8>,
-    input: String,
+    comp_id_input: String,
+    comp_id_input_focused: bool,
     state: Option<CompState>,
     error: Option<String>,
     last_poll: Option<Instant>,
     server: Option<String>,
     server_input: String,
+    server_input_focused: bool,
 }
 
 impl ClientApp {
@@ -46,12 +86,14 @@ impl ClientApp {
         Self {
             http,
             comp_id: None,
-            input: String::new(),
+            comp_id_input: String::new(),
+            comp_id_input_focused: false,
             state: None,
             error: None,
             last_poll: None,
             server: None,
             server_input: String::new(),
+            server_input_focused: false,
         }
     }
 
@@ -134,6 +176,139 @@ impl ClientApp {
             }
             Err(e) => self.error = Some(format!("{}: {}", action, e)),
         }
+    }  
+
+    fn labeled_input(&mut self, ui: &mut egui::Ui, label: &str, hint: &str, field: ClientField) {
+        let (buf, focus_buf) = match field {
+            ClientField::CompID => (&mut self.comp_id_input, &mut self.comp_id_input_focused),
+            ClientField::Server => (&mut self.server_input, &mut self.server_input_focused)
+        };
+
+        egui::Frame::new().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.set_height(64.0);
+    
+            ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                ui.add(
+                    egui::Label::new(
+                        egui::RichText::new(label)
+                        .family(egui::FontFamily::Name("Inter".into()))
+                        .size(15.0)
+                        .color(theme::TEXT)
+                        .variation("wght", 600.0)
+                    ).selectable(false)
+                );
+    
+                let (offset, stroke) = if *focus_buf {
+                    (1, egui::Stroke::new(2.0, theme::ACCENT))
+                } else {
+                    (0, egui::Stroke::new(1.0, theme::BORDER_COLOR))
+                };
+    
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    egui::Frame::new()
+                    .corner_radius(8)
+                    .stroke(stroke)
+                    .inner_margin(egui::Margin::same(16 - offset as i8))
+    
+                    .show(ui, |ui| {
+                        ui.set_width(308.0);
+                        if ui.add(
+                            egui::TextEdit::singleline(buf)
+                                .font(egui::FontId::new(
+                                    16.0,
+                                    egui::FontFamily::Name("Inter".into())
+                                ))
+                                .hint_text(
+                                    egui::RichText::new(hint)
+                                        .family(egui::FontFamily::Name("Inter".into()))
+                                        .size(16.0)
+                                        .color(theme::TEXT_DIM)
+                                )
+                                .frame(egui::Frame::NONE)
+                                .desired_width(308.0)
+                        ).has_focus() {
+                            *focus_buf = true;
+                        } else {
+                            *focus_buf = false;
+                        }
+                    });
+                });
+            });
+        });
+    }
+    
+    fn add_header(
+        &mut self, 
+        ui: &mut egui::Ui,
+        status_bg: Option<egui::Color32>,
+        status_fg: Option<egui::Color32>,
+        status_text: Option<&str>,
+    ) {
+        egui::Frame::new().show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.set_height(64.0);
+        
+                ui.horizontal(|ui| {
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new("edque - клиент")
+                                .family(egui::FontFamily::Name("Inter".into()))
+                                .size(32.0)
+                                .color(theme::TEXT)
+                                .variation("wght", 600.0)
+                        ).selectable(false)
+                    );
+                    
+                    if let (Some(status_bg), Some(status_fg)) = (status_bg, status_fg) {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            egui::Frame::new()
+                                .fill(status_bg)
+                                .corner_radius(14)
+                                .inner_margin(egui::Margin::symmetric(10, 6))
+        
+                            .show(ui, |ui| {
+                                ui.set_height(16.0);
+        
+                                
+                                if let Some(status_text) = status_text {
+                                    ui.add(
+                                        egui::Label::new(
+                                            egui::RichText::new(status_text)
+                                                .family(egui::FontFamily::Name("Inter".into()))
+                                                .size(13.0)
+                                                .color(status_fg)
+                                        ).selectable(false)
+                                    );
+                                }
+        
+                                egui::Frame::new()
+                                    .fill(status_fg)
+                                    .corner_radius(4)
+        
+                                    .show(ui, |ui| {
+                                        ui.set_width(8.0);
+                                        ui.set_height(8.0);
+                                    })
+                            });
+        
+                            ui.add_space(10.0);
+        
+                            if let Some(id) = self.comp_id {
+                                ui.add(
+                                    egui::Label::new(
+                                        egui::RichText::new(format!("Рабочий стол #{}", id))
+                                            .family(egui::FontFamily::Name("Inter".into()))
+                                            .size(13.0)
+                                            .color(theme::TEXT_DIM)
+                                            .variation("wgth", 500.0)  
+                                    ).selectable(false)
+                                );
+                            };
+                        });  
+                    }
+                });
+        });
     }
 }
 
@@ -146,101 +321,323 @@ impl eframe::App for ClientApp {
         self.poll();
         ui.ctx().request_repaint_after(Duration::from_secs(1));
 
-        ui.vertical_centered(|ui| {
-            if let Some(err) = self.error.clone() {
-                ui.colored_label(egui::Color32::RED, &err);
-                eprintln!("{err}");
-                ui.add_space(10.0);
-            }
 
-            ui.add_space(40.0);
-
-            if self.comp_id.is_none() | self.server.is_none() {
-                ui.heading("Номер рабочего стола");
-                ui.add_space(10.0);
-
-                ui.add(
-                    egui::TextEdit::singleline(&mut self.input)
-                        .desired_width(30.0)
-                        .hint_text("5"),
-                );
-                ui.add_space(10.0);
-
-                ui.add(
-                    egui::TextEdit::singleline(&mut self.server_input)
-                        .desired_width(160.0)
-                        .hint_text("192.168.0.1:3000"),
-                );
-
-                ui.add_space(20.0);
-                
-                if ui.add(
-                    egui::Button::new("Подключиться")
-                ).clicked() {
-                    self.set_server();
-                    if let Ok(id) = self.input.trim().parse::<u8>() {
-                        self.register(id);
-                    } else {
-                        self.error = Some("Введите число".into());
+        // -----------------
+        // Connection screen
+        // -----------------
+        if self.comp_id.is_none() | self.server.is_none() {
+            egui::Frame::new()
+                .fill(theme::BG)
+                .corner_radius(egui::CornerRadius::same(14))
+                .inner_margin(
+                    egui::Margin {
+                        left: 32,
+                        right: 32,
+                        top: 32,
+                        bottom: 0,
                     }
-                }
-            } else {
-                ui.heading(format!("Номер стола: {}", self.comp_id.unwrap()));
-                ui.add_space(20.0);
+                )
+            .show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.set_height(ui.available_height() - 24.0);
 
-                let status = self.state.as_ref().map(|s| s.status.clone());
-                match status {
-                    Some(Status::Idle) | None => {
-                        if ui.add_sized(
-                            [200.0, 60.0], 
-                            egui::Button::new("Начать")
-                        ).clicked() {
+                ui.vertical(|ui| {
+                    self.add_header(ui, None, None, None);
+
+                    ui.add_space(16.0);
+
+                    self.labeled_input(ui, "Номер ПК", "Например, 3", ClientField::CompID);
+
+                    ui.add_space(16.0);
+
+                    self.labeled_input(ui, "Адрес сервера", "server.example.com:3000", ClientField::Server);
+
+                    ui.add_space(16.0);
+
+                    let response = add_button(
+                        ui,
+                        egui::vec2(496.0, 64.0),
+                        theme::ACCENT,
+                        theme::TEXT_ON_ACCENT,
+                        "Подключиться",
+                        16.0
+                    );
+
+                    if response.clicked() {
+                        self.set_server();
+                        if let Ok(id) = self.comp_id_input.trim().parse::<u8>() {
+                            if !self.register(id) {
+                                self.error = Some("Ошибка подключения к серверу".into());
+                            }
+                        } else {
+                            self.error = Some("Введите число".into());
+                        }
+                    }
+                });
+            });
+
+            if let Some(e) = self.error.clone() {
+                egui::Frame::new().show(ui, |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.set_height(ui.available_height());
+
+                    ui.vertical_centered(|ui| {
+                        ui.add(
+                            egui::Label::new(
+                                egui::RichText::new(e)
+                                    .family(egui::FontFamily::Name("Inter".into()))
+                                    .size(12.0)
+                                    .color(theme::ERR)
+                            ).selectable(true)
+                        );
+                    });
+                });
+            };
+        } else {
+            let status = self.state.as_ref().map(|s| s.status.clone());
+            match status {
+                // -----------
+                // Idle screen
+                // -----------
+                Some(Status::Idle) => {
+                    egui::Frame::new()
+                        .fill(theme::BG)
+                        .corner_radius(egui::CornerRadius::same(14))
+                        .inner_margin(
+                            egui::Margin {
+                                left: 32,
+                                right: 32,
+                                top: 32,
+                                bottom: 0,
+                            }
+                        )
+                    .show(ui, |ui| {
+                        self.add_header(ui, Some(theme::IDLE), Some(theme::IDLE_FG), None);
+
+                        ui.add_space(16.0);
+
+                        egui::Frame::new().show(ui, |ui| {
+                            ui.set_height(ui.available_height() - 16.0 - 64.0 - 32.0);
+                            ui.set_width(ui.available_width());
+
+                            ui.vertical_centered(|ui| {
+                                ui.add_space(46.5);
+                                ui.add(
+                                    egui::Label::new(
+                                        egui::RichText::new("Готов к работе?")
+                                            .family(egui::FontFamily::Name("Inter-SemiBold".into()))
+                                            .size(24.0)
+                                            .color(theme::TEXT)
+                                    ).selectable(false)
+                                );
+                                ui.add_space(5.0);
+                                ui.add(
+                                    egui::Label::new(
+                                        egui::RichText::new("Запусти машины, но не входи в аккаунт!")
+                                            .family(egui::FontFamily::Name("Inter".into()))
+                                            .size(16.0)
+                                            .color(theme::TEXT)
+                                    ).selectable(false)
+                                );
+                            });
+
+                            
+                        });
+
+                        ui.add_space(16.0);
+
+                        let response = add_button(
+                            ui,
+                            egui::vec2(496.0, 64.0),
+                            theme::ACCENT,
+                            theme::TEXT_ON_ACCENT,
+                            "Начать",
+                            16.0
+                        );
+
+                        if response.clicked() {
                             self.post_action("start");
                         }
-                    }
-                    Some(Status::Working) => {
-                        if ui.add_sized(
-                            [200.0, 60.0], 
-                            egui::Button::new("Завершить")
-                        ).clicked() {
-                            self.post_action("finish");
-                        }
-                    }
-                    Some(Status::ReviewRequired) => {
-                        ui.label(egui::RichText::new("Ожидайте результатов проверки").size(24.0));
-                    }
-                    Some(Status::Offline) => {
-                        ui.label(egui::RichText::new("Оффлайн").size(24.0));
-                    }
-                    Some(Status::Done) => {
-                        let score_text = self.state.as_ref()
-                            .and_then(|s| s.score)
-                            .map(shared::format_score)
-                            .unwrap_or_else(|| "-".into());
+                    });
 
-                        let duration_text = self.state.as_ref()
-                            .and_then(|s| match (s.started_at, s.finished_at) {
-                                (Some(a), Some(b)) => Some(shared::format_duration(a, b)),
-                                _ => None,
-                            })
-                            .unwrap_or_else(|| "-".into());
+                    if let Some(e) = self.error.clone() {
+                        egui::Frame::new().show(ui, |ui| {
+                            ui.set_width(ui.available_width());
+                            ui.set_height(ui.available_height());
 
-                        ui.label(egui::RichText::new("Результаты:").size(24.0));
-                        ui.label(
-                            egui::RichText::new(format!("{} баллов, {}", score_text, duration_text))
-                            .size(24.0)
-                        );
-                    }
-                    Some(Status::Banned) => {
-                        ui.colored_label(
-                            egui::Color32::RED,
-                            egui::RichText::new(
-                                format!("ЗАБЛОКИРОВАН")
-                            ).size(48.0)
-                        );
-                    }
+                            ui.vertical_centered(|ui| {
+                                ui.add(
+                                    egui::Label::new(
+                                        egui::RichText::new(e)
+                                            .family(egui::FontFamily::Name("Inter".into()))
+                                            .size(12.0)
+                                            .color(theme::ERR)
+                                    ).selectable(true)
+                                );
+                            });
+                        });
+                    };
                 }
+
+                // --------------
+                // Working screen
+                // --------------
+                Some(Status::Working) => {
+                    egui::Frame::new()
+                        .fill(theme::BG)
+                        .corner_radius(egui::CornerRadius::same(14))
+                        .inner_margin(
+                            egui::Margin {
+                                left: 32,
+                                right: 32,
+                                top: 32,
+                                bottom: 0,
+                            }
+                        )
+                    .show(ui, |ui| {
+                        self.add_header(ui, Some(theme::WORKING), Some(theme::WORKING_FG), Some("В работе"));
+                    });
+
+                    if let Some(e) = self.error.clone() {
+                        egui::Frame::new().show(ui, |ui| {
+                            ui.set_width(ui.available_width());
+                            ui.set_height(ui.available_height());
+
+                            ui.vertical_centered(|ui| {
+                                ui.add(
+                                    egui::Label::new(
+                                        egui::RichText::new(e)
+                                            .family(egui::FontFamily::Name("Inter".into()))
+                                            .size(12.0)
+                                            .color(theme::ERR)
+                                    ).selectable(true)
+                                );
+                            });
+                        });
+                    };
+                }
+
+                _ => {}
             }
-        });
+        }
+
+        
+
+            
+
+        
+        
+        // ui.vertical_centered(|ui| {
+        //     if let Some(err) = self.error.clone() {
+        //         ui.colored_label(egui::Color32::RED, &err);
+        //         eprintln!("{err}");
+        //         ui.add_space(10.0);
+        //     }
+
+        //     ui.add_space(40.0);
+
+        //     if self.comp_id.is_none() | self.server.is_none() {
+        //         ui.heading("Номер рабочего стола");
+        //         ui.add_space(10.0);
+
+        //         ui.add(
+        //             egui::TextEdit::singleline(&mut self.input)
+        //                 .desired_width(30.0)
+        //                 .hint_text("5"),
+        //         );
+        //         ui.add_space(10.0);
+
+        //         ui.add(
+        //             egui::TextEdit::singleline(&mut self.server_input)
+        //                 .desired_width(160.0)
+        //                 .hint_text("192.168.0.1:3000"),
+        //         );
+
+        //         ui.add_space(20.0);
+                
+        //         if ui.add(
+        //             egui::Button::new("Подключиться")
+        //         ).clicked() {
+        //             self.set_server();
+        //             if let Ok(id) = self.input.trim().parse::<u8>() {
+        //                 self.register(id);
+        //             } else {
+        //                 self.error = Some("Введите число".into());
+        //             }
+        //         }
+        //     } else {
+        //         ui.heading(format!("Номер стола: {}", self.comp_id.unwrap()));
+        //         ui.add_space(20.0);
+
+        //         let status = self.state.as_ref().map(|s| s.status.clone());
+        //         match status {
+        //             Some(Status::Idle) | None => {
+        //                 if ui.add_sized(
+        //                     [200.0, 60.0], 
+        //                     egui::Button::new("Начать")
+        //                 ).clicked() {
+        //                     self.post_action("start");
+        //                 }
+        //             }
+        //             Some(Status::Working) => {
+        //                 if ui.add_sized(
+        //                     [200.0, 60.0], 
+        //                     egui::Button::new("Завершить")
+        //                 ).clicked() {
+        //                     self.post_action("finish");
+        //                 }
+        //             }
+        //             Some(Status::ReviewRequired) => {
+        //                 ui.label(egui::RichText::new("Ожидайте результатов проверки").size(24.0));
+        //             }
+        //             Some(Status::Offline) => {
+        //                 ui.label(egui::RichText::new("Оффлайн").size(24.0));
+        //             }
+        //             Some(Status::Done) => {
+        //                 let score_text = self.state.as_ref()
+        //                     .and_then(|s| s.score)
+        //                     .map(shared::format_score)
+        //                     .unwrap_or_else(|| "-".into());
+
+        //                 let duration_text = self.state.as_ref()
+        //                     .and_then(|s| match (s.started_at, s.finished_at) {
+        //                         (Some(a), Some(b)) => Some(shared::format_duration(a, b)),
+        //                         _ => None,
+        //                     })
+        //                     .unwrap_or_else(|| "-".into());
+
+        //                 ui.label(egui::RichText::new("Результаты:").size(24.0));
+        //                 ui.label(
+        //                     egui::RichText::new(format!("{} баллов, {}", score_text, duration_text))
+        //                     .size(24.0)
+        //                 );
+        //             }
+        //             Some(Status::Banned) => {
+        //                 ui.colored_label(
+        //                     egui::Color32::RED,
+        //                     egui::RichText::new(
+        //                         format!("ЗАБЛОКИРОВАН")
+        //                     ).size(48.0)
+        //                 );
+        //             }
+        //         }
+        //     }
+        // });
     }
+}
+
+fn add_button(ui: &mut egui::Ui, desired_size: egui::Vec2, bg: egui::Color32, fg: egui::Color32, text: &str, font_size: f32) -> egui::Response {
+    let (rect, response) = ui.allocate_exact_size(desired_size, egui::Sense::click());
+
+    ui.painter().rect_filled(rect, egui::CornerRadius::same(8), bg);
+
+    // center text
+    ui.painter().text(
+        rect.center(),
+        egui::Align2::CENTER_CENTER,
+        text,
+        egui::FontId::new(font_size, egui::FontFamily::Name("Inter-SemiBold".into())),
+        fg
+    );
+    response
 }
