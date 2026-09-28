@@ -2,10 +2,10 @@ use eframe::egui;
 use std::{
     sync::Arc, time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
-use shared::{CompState, RegisterRequest, Status};
+use shared::{CompState, RegisterRequest, Status, theme};
 
 
-mod theme;
+
 
 enum ClientField {
     CompID,

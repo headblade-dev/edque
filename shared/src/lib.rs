@@ -2,6 +2,8 @@ use std::u16;
 
 use serde::{Deserialize, Serialize};
 
+pub mod theme;
+
 pub type Score = u16;
 
 pub const MAX_SCORE: Score = 1000;
