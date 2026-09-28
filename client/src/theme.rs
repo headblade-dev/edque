@@ -1,4 +1,4 @@
-use eframe::egui::{self, Color32};
+use eframe::egui::{Color32, Context, CornerRadius, Visuals};
 
 pub const BG: Color32 = Color32::from_rgb(255, 255, 255);
 pub const PANEL_BG: Color32 = Color32::from_rgb(255, 255, 255);
@@ -27,8 +27,8 @@ pub const BANNED_FG: Color32 = Color32::from_rgb(122, 27, 27);
 pub const BANNED_DOT: Color32 = Color32::from_rgb(166, 36, 36);
 
 
-pub fn apply(ctx: &egui::Context) {
-    let mut visuals = egui::Visuals::light();
+pub fn apply(ctx: &Context) {
+    let mut visuals = Visuals::light();
     visuals.panel_fill = PANEL_BG;
     visuals.window_fill = BG;
     visuals.extreme_bg_color = PANEL_BG;
@@ -36,10 +36,10 @@ pub fn apply(ctx: &egui::Context) {
     visuals.override_text_color = Some(TEXT);
 
     // buttons
-    visuals.widgets.inactive.corner_radius = egui::CornerRadius::same(8);
-    visuals.widgets.active.corner_radius = egui::CornerRadius::same(8);
-    visuals.widgets.hovered.corner_radius = egui::CornerRadius::same(8);
-    visuals.widgets.noninteractive.corner_radius = egui::CornerRadius::same(8);
+    visuals.widgets.inactive.corner_radius = CornerRadius::same(8);
+    visuals.widgets.active.corner_radius = CornerRadius::same(8);
+    visuals.widgets.hovered.corner_radius = CornerRadius::same(8);
+    visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
 
     ctx.set_visuals(visuals);
 }
