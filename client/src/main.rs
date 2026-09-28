@@ -1,7 +1,6 @@
 use eframe::egui;
 use std::{
-    time::{Duration, Instant},
-    sync::Arc,
+    sync::Arc, time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use shared::{CompState, RegisterRequest, Status};
 
@@ -138,7 +137,7 @@ impl ClientApp {
         let Some(id) = self.comp_id else { return };
 
         if let Some(t) = self.last_poll {
-            if t.elapsed() < Duration::from_secs(1) {
+            if t.elapsed() < Duration::from_millis(500) {
                 return;
             }
         }
@@ -301,7 +300,7 @@ impl ClientApp {
                                             .family(egui::FontFamily::Name("Inter".into()))
                                             .size(13.0)
                                             .color(theme::TEXT_DIM)
-                                            .variation("wgth", 500.0)  
+                                            .variation("wght", 500.0)  
                                     ).selectable(false)
                                 );
                             };
@@ -356,7 +355,7 @@ impl eframe::App for ClientApp {
 
                     let response = add_button(
                         ui,
-                        egui::vec2(496.0, 64.0),
+                        egui::vec2(ui.available_width(), 64.0),
                         theme::ACCENT,
                         theme::TEXT_ON_ACCENT,
                         "Подключиться",
@@ -395,6 +394,7 @@ impl eframe::App for ClientApp {
             };
         } else {
             let status = self.state.as_ref().map(|s| s.status.clone());
+            let started_at = self.state.as_ref().map(|s| s.started_at);
             match status {
                 // -----------
                 // Idle screen
@@ -413,8 +413,6 @@ impl eframe::App for ClientApp {
                         )
                     .show(ui, |ui| {
                         self.add_header(ui, Some(theme::IDLE), Some(theme::IDLE_FG), None);
-
-                        ui.add_space(16.0);
 
                         egui::Frame::new().show(ui, |ui| {
                             ui.set_height(ui.available_height() - 16.0 - 64.0 - 32.0);
@@ -448,7 +446,7 @@ impl eframe::App for ClientApp {
 
                         let response = add_button(
                             ui,
-                            egui::vec2(496.0, 64.0),
+                            egui::vec2(ui.available_width(), 64.0),
                             theme::ACCENT,
                             theme::TEXT_ON_ACCENT,
                             "Начать",
@@ -496,6 +494,122 @@ impl eframe::App for ClientApp {
                         )
                     .show(ui, |ui| {
                         self.add_header(ui, Some(theme::WORKING), Some(theme::WORKING_FG), Some("В работе"));
+
+                        egui::Frame::new().show(ui, |ui| {
+                            ui.set_height(ui.available_height() - 16.0 - 64.0 - 32.0);
+                            ui.set_width(ui.available_width());
+
+                            ui.horizontal_centered(|ui| {
+                                egui::Frame::new()
+                                .corner_radius(8)
+                                .fill(theme::CARD_BG)
+                                .inner_margin(egui::Margin::ZERO)
+                                .stroke(egui::Stroke::new(1.0, theme::BORDER_COLOR))
+
+                                .show(ui, |ui| {
+                                    ui.set_height(149.0);
+                                    ui.set_width(ui.available_width() / 2.0 - 12.0);
+                                    
+                                    ui.vertical_centered(|ui| {
+                                        ui.add_space(53.5);
+                                        
+                                        ui.add(
+                                            egui::Label::new(
+                                                egui::RichText::new("Начало")
+                                                    .family(egui::FontFamily::Name("Inter".into()))
+                                                    .size(12.0)
+                                                    .color(theme::TEXT_DIM)
+                                            ).selectable(false)
+                                        );
+                                        ui.add_space(4.0);
+
+                                        let mut started_time = String::new();
+
+                                        if let Some(started_at) = started_at {
+                                            started_time = shared::format_time(started_at);
+                                        } else {
+                                            self.error = Some("Ошибка получения времени старта от сервера".to_string());
+                                        }
+
+                                        ui.add(
+                                            egui::Label::new(
+                                                egui::RichText::new(format!("{}", started_time))
+                                                    .family(egui::FontFamily::Name("Inter".into()))
+                                                    .size(12.0)
+                                                    .color(theme::TEXT_DIM)
+                                                    .variation("wght", 500.0)
+                                            ).selectable(false)
+                                        );
+                                    });
+                                });
+
+                                ui.add_space(12.0);
+                                
+                                egui::Frame::new()
+                                .corner_radius(8)
+                                .fill(theme::CARD_BG)
+                                .inner_margin(egui::Margin::ZERO)
+                                .stroke(egui::Stroke::new(1.0, theme::BORDER_COLOR))
+
+                                .show(ui, |ui| {
+                                    ui.set_height(149.0);
+                                    ui.set_width(ui.available_width());
+                                    
+                                    ui.vertical_centered(|ui| {
+                                        ui.add_space(53.5);
+                                        
+                                        ui.add(
+                                            egui::Label::new(
+                                                egui::RichText::new("Прошло")
+                                                    .family(egui::FontFamily::Name("Inter".into()))
+                                                    .size(12.0)
+                                                    .color(theme::TEXT_DIM)
+                                            ).selectable(false)
+                                        );
+                                        ui.add_space(4.0);
+
+                                        let mut passed_time = String::new();
+
+                                        if let Some(Some(started_at)) = started_at {
+
+                                            let current_time = SystemTime::now()
+                                                .duration_since(UNIX_EPOCH)
+                                                .map(|d| d.as_secs())
+                                                .unwrap_or(0);
+
+                                            passed_time = shared::format_duration(started_at, current_time);
+                                        } else {
+                                            self.error = Some("Ошибка получения времени старта от сервера".to_string());
+                                        }
+
+                                        ui.add(
+                                            egui::Label::new(
+                                                egui::RichText::new(format!("{}", passed_time))
+                                                    .family(egui::FontFamily::Name("Inter".into()))
+                                                    .size(12.0)
+                                                    .color(theme::TEXT_DIM)
+                                                    .variation("wght", 500.0)
+                                            ).selectable(false)
+                                        );
+                                    });
+                                });
+                            });
+                        });
+                        
+                        ui.add_space(16.0);
+
+                        let response = add_button(
+                            ui,
+                            egui::vec2(ui.available_width(), 64.0),
+                            theme::ACCENT,
+                            theme::TEXT_ON_ACCENT,
+                            "Завершить",
+                            16.0
+                        );
+
+                        if response.clicked() {
+                            self.post_action("finish");
+                        }
                     });
 
                     if let Some(e) = self.error.clone() {
