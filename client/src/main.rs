@@ -124,7 +124,7 @@ impl ClientApp {
                     false
                 }
             }
-            Err(e) => {
+            Err(_) => {
                 self.error = Some(format!("Ошибка подключения к серверу"));
                 false
             }
