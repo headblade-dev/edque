@@ -26,12 +26,6 @@ pub const BANNED: Color32 = Color32::from_rgb(247, 234, 234);
 pub const BANNED_FG: Color32 = Color32::from_rgb(122, 27, 27);
 pub const BANNED_DOT: Color32 = Color32::from_rgb(166, 36, 36);
 
-pub const BORDER_RADIUS: egui::CornerRadius = egui::CornerRadius::same(4);
-
-// Buttons
-pub const BUTTON_INACTIVE_BG: Color32 = Color32::from_rgb(220, 220, 220);
-pub const BUTTON_HOVER_BG: Color32 = Color32::from_rgb(200, 200, 200);
-
 
 pub fn apply(ctx: &egui::Context) {
     let mut visuals = egui::Visuals::light();
