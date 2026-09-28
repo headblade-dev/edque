@@ -9,20 +9,22 @@ pub const BORDER_COLOR: Color32 = Color32::from_rgb(201, 208, 219);
 pub const ACCENT: Color32 = Color32::from_rgb(234, 65, 65);
 pub const CARD_BG: Color32 = Color32::from_rgb(248,250, 252);
 
-pub const OK: Color32 = Color32::from_rgb(65, 230, 65);
 pub const ERR: Color32 = Color32::from_rgb(230, 65, 65);
-pub const WARN: Color32 = Color32::from_rgb(230, 230, 65);
 
 pub const IDLE: Color32 = Color32::from_rgb(241, 241, 241);
-pub const IDLE_FG: Color32 = Color32::from_rgb(101, 101, 101);
+pub const IDLE_DOT: Color32 = Color32::from_rgb(101, 101, 101);
 pub const WORKING: Color32 = Color32::from_rgb(234, 247, 240);
-pub const WORKING_FG: Color32 = Color32::from_rgb(36, 166, 101);
+pub const WORKING_FG: Color32 = Color32::from_rgb(27, 122, 74);
+pub const WORKING_DOT: Color32 = Color32::from_rgb(36, 166, 101);
 pub const REVIEW: Color32 = Color32::from_rgb(247, 245, 234);
-pub const REVIEW_FG: Color32 = Color32::from_rgb(166, 144, 36);
+pub const REVIEW_FG: Color32 = Color32::from_rgb(122, 106, 27);
+pub const REVIEW_DOT: Color32 = Color32::from_rgb(166, 144, 36);
 pub const DONE: Color32 = Color32::from_rgb(234, 241, 247);
-pub const DONE_FG: Color32 = Color32::from_rgb(36, 101, 166);
+pub const DONE_FG: Color32 = Color32::from_rgb(27, 75, 122);
+pub const DONE_DOT: Color32 = Color32::from_rgb(36, 101, 166);
 pub const BANNED: Color32 = Color32::from_rgb(247, 234, 234);
-pub const BANNED_FG: Color32 = Color32::from_rgb(166, 36, 36);
+pub const BANNED_FG: Color32 = Color32::from_rgb(122, 27, 27);
+pub const BANNED_DOT: Color32 = Color32::from_rgb(166, 36, 36);
 
 pub const BORDER_RADIUS: egui::CornerRadius = egui::CornerRadius::same(4);
 
@@ -38,8 +40,6 @@ pub fn apply(ctx: &egui::Context) {
     visuals.extreme_bg_color = PANEL_BG;
     visuals.faint_bg_color = BORDER_COLOR;
     visuals.override_text_color = Some(TEXT);
-    visuals.window_corner_radius = BORDER_RADIUS;
-    visuals.menu_corner_radius = BORDER_RADIUS;
 
     // buttons
     visuals.widgets.inactive.corner_radius = egui::CornerRadius::same(8);
