@@ -535,7 +535,7 @@ impl eframe::App for ClientApp {
                                         let mut started_time = String::new();
 
                                         if let Some(started_at) = started_at {
-                                            started_time = shared::format_time(started_at);
+                                            started_time = shared::format_time(started_at, false);
                                         } else {
                                             self.error = Some("Ошибка получения времени старта от сервера".to_string());
                                         }

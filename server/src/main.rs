@@ -228,7 +228,7 @@ async fn report(
         if let Some(entry) = db.get(&comp_id) {
             let duration = match (entry.started_at, entry.finished_at) {
                 (Some(a), Some(b)) => {
-                    (b.saturating_sub(a)).to_string()
+                    shared::format_duration(a, b)
                 }
                 _ => String::new(),
             };

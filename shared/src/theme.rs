@@ -7,11 +7,14 @@ pub const TEXT_ON_ACCENT: Color32 = Color32::from_rgb(255, 255, 255);
 pub const TEXT_DIM: Color32 = Color32::from_rgb(139, 149, 167);
 pub const BORDER_COLOR: Color32 = Color32::from_rgb(201, 208, 219);
 pub const ACCENT: Color32 = Color32::from_rgb(234, 65, 65);
-pub const CARD_BG: Color32 = Color32::from_rgb(248,250, 252);
+pub const ACCENT_DIM: Color32 = Color32::from_rgb(228, 116, 116);
+pub const ACCENT_BG: Color32 = Color32::from_rgb(255, 245, 245);
+pub const CARD_BG: Color32 = Color32::from_rgb(248, 250, 252);
 
 pub const ERR: Color32 = Color32::from_rgb(230, 65, 65);
 
 pub const IDLE: Color32 = Color32::from_rgb(241, 241, 241);
+pub const IDLE_FG: Color32 = Color32::from_rgb(101, 101, 101);
 pub const IDLE_DOT: Color32 = Color32::from_rgb(101, 101, 101);
 pub const WORKING: Color32 = Color32::from_rgb(234, 247, 240);
 pub const WORKING_FG: Color32 = Color32::from_rgb(27, 122, 74);
@@ -25,6 +28,9 @@ pub const DONE_DOT: Color32 = Color32::from_rgb(36, 101, 166);
 pub const BANNED: Color32 = Color32::from_rgb(247, 234, 234);
 pub const BANNED_FG: Color32 = Color32::from_rgb(122, 27, 27);
 pub const BANNED_DOT: Color32 = Color32::from_rgb(166, 36, 36);
+
+pub const THIN_LINE: Color32 = Color32::from_rgb(233, 233, 233);
+
 
 
 pub fn apply(ctx: &Context) {
@@ -40,6 +46,9 @@ pub fn apply(ctx: &Context) {
     visuals.widgets.active.corner_radius = CornerRadius::same(8);
     visuals.widgets.hovered.corner_radius = CornerRadius::same(8);
     visuals.widgets.noninteractive.corner_radius = CornerRadius::same(8);
+
+    // separators
+    visuals.widgets.noninteractive.bg_stroke.color = THIN_LINE;
 
     ctx.set_visuals(visuals);
 }

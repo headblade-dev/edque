@@ -85,7 +85,7 @@ pub fn format_duration(start: u64, end: u64) -> String {
     format!("{}:{:02}", secs / 60, secs % 60)
 }
 
-pub fn format_time(secs: Option<u64>) -> String {
+pub fn format_time(secs: Option<u64>, print_secs: bool) -> String {
     let Some(t) = secs else { return "-".to_string() };
 
     let tz_offset = 4 * 3600;
@@ -94,9 +94,12 @@ pub fn format_time(secs: Option<u64>) -> String {
     let secs_in_day = local % 86400;
     let h = secs_in_day / 3600;
     let m = (secs_in_day % 3600) / 60;
-    let s =  (secs_in_day) % 60;
-
-    format!("{:02}:{:02}:{:02}", h, m ,s)
+    if print_secs { 
+        let s =  (secs_in_day) % 60; 
+        format!("{:02}:{:02}:{:02}", h, m ,s)
+    } else {
+        format!("{:02}:{:02}", h, m)
+    }
 }
 
 #[cfg(test)]
