@@ -6,8 +6,10 @@ use axum::{
 
 use shared::{CompState, RegisterRequest, ScoreRequest, ReportRequest, Status, MAX_SCORE};
 
+use tokio::sync::RwLock;
+
 use std::{
-    collections::HashMap, path::PathBuf, sync::{Arc, RwLock}, time::{Duration, SystemTime, UNIX_EPOCH},
+    collections::HashMap, path::PathBuf, sync::{Arc}, time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 type Db = Arc<RwLock<HashMap<u8, CompState>>>;
@@ -34,7 +36,7 @@ async fn main() {
         let mut interval = tokio::time::interval(Duration::from_secs(5));
         loop {
             interval.tick().await;
-            let snapshot = db_for_save.read().unwrap().clone();
+            let snapshot = db_for_save.read().await;
             if let Err(e) = storage::save(&state_file_for_save, &snapshot) {
                 eprintln!("Failed to save state: {}", e);
             }
@@ -69,7 +71,7 @@ pub fn data_dir() -> PathBuf {
 }
 
 async fn list_comps(State(db): State<Db>) -> Json<Vec<CompState>> {
-    let db = db.read().unwrap();
+    let db = db.read().await;
     let mut comps: Vec<CompState> = db.values().cloned().collect();
     comps.sort_by_key(|c| c.comp_id);
     Json(comps)
@@ -79,7 +81,7 @@ async fn get_comp(
     State(db): State<Db>,
     Path(comp_id): Path<u8>
 ) -> Result<Json<CompState>, StatusCode> {
-    let db = db.read().unwrap();
+    let db = db.read().await;
     db.get(&comp_id)
         .cloned()
         .map(Json)
@@ -93,7 +95,7 @@ async fn register(
     let comp_id = request.comp_id;
     let hostname = request.hostname;
 
-    let mut db = db.write().unwrap();
+    let mut db = db.write().await;
     let entry = db.entry(comp_id).or_insert_with(|| CompState {
         comp_id: request.comp_id,
         status: Status::Idle,
@@ -114,7 +116,7 @@ async fn start(
     State(db): State<Db>,
     Path(comp_id): Path<u8>
 ) -> Result<Json<CompState>, StatusCode> {
-    let mut db = db.write().unwrap();
+    let mut db = db.write().await;
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
     if entry.status == Status::Working {
@@ -134,7 +136,7 @@ async fn finish(
     State(db): State<Db>,
     Path(comp_id): Path<u8>
 ) -> Result<Json<CompState>, StatusCode> {
-    let mut db = db.write().unwrap();
+    let mut db = db.write().await;
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
     match entry.status {
@@ -162,7 +164,7 @@ async fn set_score(
         return Err(StatusCode::BAD_REQUEST);
     }
     
-    let mut db = db.write().unwrap();
+    let mut db = db.write().await;
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
     entry.score = Some(request.score);
@@ -177,7 +179,7 @@ async fn reset(
     State(db): State<Db>,
     Path(comp_id): Path<u8>,
 ) -> Result<Json<CompState>, StatusCode> {
-    let mut db = db.write().unwrap();
+    let mut db = db.write().await;
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
     do_reset(entry);
@@ -189,7 +191,7 @@ async fn ban(
     State(db): State<Db>,
     Path(comp_id): Path<u8>,
 ) -> Result<Json<CompState>, StatusCode> {
-    let mut db = db.write().unwrap();
+    let mut db = db.write().await;
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
     do_reset(entry);
@@ -202,7 +204,7 @@ async fn resume(
     State(db): State<Db>,
     Path(comp_id): Path<u8>,
 ) -> Result<Json<CompState>, StatusCode> {
-    let mut db = db.write().unwrap();
+    let mut db = db.write().await;
     let entry = db.get_mut(&comp_id).ok_or(StatusCode::NOT_FOUND)?;
 
     match entry.status {
@@ -220,7 +222,7 @@ async fn report(
     State(db): State<Db>,
     Json(request): Json<ReportRequest>
 ) -> Result<String, StatusCode> {
-    let db = db.read().unwrap();
+    let db = db.read().await;
     let mut out = String::from("\u{FEFF}");
     out.push_str("ID,Длительность,Баллы\n");
 
