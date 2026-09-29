@@ -913,7 +913,7 @@ dependencies = [
 
 [[package]]
 name = "edque-admin"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "eframe",
  "reqwest",
@@ -924,7 +924,7 @@ dependencies = [
 
 [[package]]
 name = "edque-client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "eframe",
  "reqwest",
@@ -935,7 +935,7 @@ dependencies = [
 
 [[package]]
 name = "edque-server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "serde",
@@ -3401,7 +3401,7 @@ dependencies = [
 
 [[package]]
 name = "shared"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "eframe",
  "serde",
