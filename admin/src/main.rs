@@ -14,10 +14,14 @@ fn main() -> eframe::Result<()> {
     let app = AdminApp::new();
 
     // window parameters (size, pos, icon, etc.)
+    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../../assets/Icon.png"))
+        .expect("Icon must be valid PNG");
+
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([600.0, 832.0])
-            .with_resizable(false),
+            .with_resizable(false)
+            .with_icon(icon),
         ..Default::default()
     };
 
