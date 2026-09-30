@@ -344,9 +344,9 @@ impl eframe::App for ClientApp {
                                 ui.set_width(ui.available_width());
 
                                 ui.horizontal_centered(|ui| {
-                                    self.info_card(ui, started_at, ClientInfo::StartedAt, (3, 0));
+                                    self.info_card(ui, started_at, ClientInfo::StartedAt, (2, 0));
                                     ui.add_space(12.0);
-                                    self.info_card(ui, started_at, ClientInfo::Passed, (3, 1));
+                                    self.info_card(ui, started_at, ClientInfo::Passed, (2, 1));
                                 });
                             });
 
