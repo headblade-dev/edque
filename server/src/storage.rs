@@ -6,6 +6,9 @@ use std::{
     path::Path,
 };
 
+///
+/// Loads data from state file
+/// 
 pub fn load(path: &Path) -> io::Result<HashMap<u8, CompState>> {
     if !path.exists() {
         return Ok(HashMap::new());
@@ -16,6 +19,9 @@ pub fn load(path: &Path) -> io::Result<HashMap<u8, CompState>> {
     Ok(map)
 }
 
+///
+/// Saves data to state file
+///
 pub fn save(path: &Path, map: &HashMap<u8, CompState>) -> io::Result<()> {
     let json = serde_json::to_string_pretty(map)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;

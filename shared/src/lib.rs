@@ -3,6 +3,7 @@ use std::u16;
 use serde::{Deserialize, Serialize};
 
 pub mod theme;
+pub mod widgets;
 
 pub type Score = u16;
 
@@ -46,6 +47,9 @@ pub struct ReportRequest {
     pub comp_ids: Vec<u8>,
 }
 
+///
+/// Formats score to `String` (245_u16 -> "24.5")
+/// 
 pub fn format_score(score: Score) -> String {
     format!("{}.{}", score / 10, score % 10)
 }
@@ -80,11 +84,17 @@ pub fn parse_score(s: &str) -> Option<Score> {
     Some(total)
 }
 
+///
+/// Calculates duration from `start` to `end` and formats it to `String`
+/// 
 pub fn format_duration(start: u64, end: u64) -> String {
     let secs = end.saturating_sub(start);
     format!("{}:{:02}", secs / 60, secs % 60)
 }
 
+///
+/// Formats time in seconds since Unix Epoch to `String`
+/// 
 pub fn format_time(secs: Option<u64>, print_secs: bool) -> String {
     let Some(t) = secs else { return "-".to_string() };
 

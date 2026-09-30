@@ -18,9 +18,11 @@ const LISTEN_ON: &str = "0.0.0.0:3000";
 
 #[tokio::main]
 async fn main() {
+    // Create needed folders
     let dir = data_dir();
     std::fs::create_dir_all(&dir).expect("Failed to create folder: ~/.edque");
 
+    // Use `state.json` or create a new state file
     let state_file = dir.join("state.json");
     let initial = storage::load(&state_file).unwrap_or_else(|e| {
         eprintln!("Failed to load saved state: {} - starting empty.", e);
@@ -32,6 +34,7 @@ async fn main() {
     let db_for_save = db.clone();
     let state_file_for_save = state_file.clone();
 
+    // Saving snapshots
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(Duration::from_secs(5));
         loop {
@@ -43,6 +46,7 @@ async fn main() {
         }
     });
 
+    // Add routes (endpoints) for HTTP-server
     let app = Router::new()
         .route("/api/comps", get(list_comps))
         .route("/api/comps/{id}", get(get_comp))
@@ -56,20 +60,28 @@ async fn main() {
         .route("/api/report", post(report))
         .with_state(db);
 
+    // Bind a `TcpListener`
     let listener = tokio::net::TcpListener::bind(LISTEN_ON)
         .await
         .expect(&format!("Failed to bind to {}", LISTEN_ON));
 
+    // Start http server
     println!("Server listening on {}", LISTEN_ON);
     axum::serve(listener, app).await.expect("Server crashed");
 }
 
+///
+/// Gives data folder path
+/// 
 pub fn data_dir() -> PathBuf {
     let home = std::env::var_os("HOME")
         .expect("HOME is not set!");
     PathBuf::from(home).join(".local/share/edque")
 }
 
+///
+/// Gives sorted computers list
+/// 
 async fn list_comps(State(db): State<Db>) -> Json<Vec<CompState>> {
     let db = db.read().await;
     let mut comps: Vec<CompState> = db.values().cloned().collect();
@@ -77,6 +89,9 @@ async fn list_comps(State(db): State<Db>) -> Json<Vec<CompState>> {
     Json(comps)
 }
 
+///
+/// Returns `CompState` of given computer
+/// 
 async fn get_comp(
     State(db): State<Db>,
     Path(comp_id): Path<u8>
@@ -88,6 +103,9 @@ async fn get_comp(
         .ok_or(StatusCode::NOT_FOUND)
 }
 
+///
+/// Adds a `CompState` entry for new computer
+/// 
 async fn register(
     State(db): State<Db>,
     Json(request): Json<RegisterRequest>
@@ -112,6 +130,9 @@ async fn register(
     Json(entry.clone())
 }
 
+///
+/// Sets status of given computer to 'Working'
+/// 
 async fn start(
     State(db): State<Db>,
     Path(comp_id): Path<u8>
@@ -132,6 +153,9 @@ async fn start(
     Ok(Json(entry.clone()))
 }
 
+///
+/// Sets status of given computer to 'ReviewRequired'
+/// 
 async fn finish(
     State(db): State<Db>,
     Path(comp_id): Path<u8>
@@ -155,6 +179,9 @@ async fn finish(
     Ok(Json(entry.clone()))
 }
 
+///
+/// Sets score of given computer
+/// 
 async fn set_score(
     State(db): State<Db>,
     Path(comp_id): Path<u8>,
@@ -175,6 +202,9 @@ async fn set_score(
     Ok(Json(entry.clone()))
 }
 
+///
+/// Resets state of given computer
+/// 
 async fn reset(
     State(db): State<Db>,
     Path(comp_id): Path<u8>,
@@ -187,6 +217,9 @@ async fn reset(
     Ok(Json(entry.clone()))
 }
 
+///
+/// Sets status of given computer to 'Banned'
+/// 
 async fn ban(
     State(db): State<Db>,
     Path(comp_id): Path<u8>,
@@ -200,6 +233,9 @@ async fn ban(
     Ok(Json(entry.clone()))
 }
 
+///
+/// Sets status of given computer from `Done|ReviewRequired` to 'Working'
+/// 
 async fn resume(
     State(db): State<Db>,
     Path(comp_id): Path<u8>,
@@ -218,6 +254,9 @@ async fn resume(
     Ok(Json(entry.clone()))
 }
 
+///
+/// Catches values of given computers, formats a .CSV data and send it back
+/// 
 async fn report(
     State(db): State<Db>,
     Json(request): Json<ReportRequest>
@@ -247,6 +286,9 @@ async fn report(
     Ok(out)
 }
 
+///
+/// Sets parameters of reset computer (used in `ban()` and `reset()`)
+/// 
 fn do_reset(entry: &mut CompState) {
     entry.status = Status::Idle;
     entry.started_at = None;
@@ -254,6 +296,9 @@ fn do_reset(entry: &mut CompState) {
     entry.score = None;
 }
 
+///
+/// Returns current time since Unix Epoch as seconds
+/// 
 fn now_ts() -> u64 {
     let secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
