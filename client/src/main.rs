@@ -1,5 +1,5 @@
 use eframe::egui;
-use shared::{CompState, RegisterRequest, Status, theme};
+use shared::{CompState, RegisterRequest, Status, theme, widgets::Button};
 use std::time::{Duration, Instant};
 
 mod ui;
@@ -57,9 +57,7 @@ struct ClientApp {
 }
 
 impl ClientApp {
-    ///
     /// Creates HTTP-client and constructs ClientApp structure
-    ///
     fn new() -> Self {
         let http = reqwest::blocking::Client::builder()
             .timeout(Duration::from_secs(5))
@@ -79,29 +77,23 @@ impl ClientApp {
         }
     }
 
-    ///
     /// Sets server from buffer
-    ///
     fn set_server(&mut self) {
         if !self.server_input.is_empty() {
             self.server = Some(self.server_input.clone());
         }
     }
 
-    ///
     /// Sends POST request to register computer on server
-    ///
     fn register(&mut self, set_id: u8) -> bool {
         let Some(server) = self.server.clone() else {
             return false;
         };
-
         let url = format!("http://{}/api/register", server);
         let request = RegisterRequest {
             comp_id: set_id,
             hostname: std::env::var("HOSTNAME").ok(),
         };
-
         match self.http.post(&url).json(&request).send() {
             Ok(resp) => match resp.json::<CompState>() {
                 Ok(s) => {
@@ -124,24 +116,18 @@ impl ClientApp {
         }
     }
 
-    ///
     /// GETs `CompState` for local computer from server with interval
-    ///
     fn poll(&mut self) {
         let Some(server) = self.server.clone() else {
             return;
         };
-
         let Some(id) = self.comp_id else { return };
-
         if let Some(t) = self.last_poll
             && t.elapsed() < Duration::from_millis(500)
         {
             return;
         }
-
         self.last_poll = Some(Instant::now());
-
         let url = format!("http://{}/api/comps/{id}", server);
         match self.http.get(&url).send() {
             Ok(response) => match response.json::<CompState>() {
@@ -159,16 +145,12 @@ impl ClientApp {
         }
     }
 
-    ///
     /// Formats and send POST requests
-    ///
     fn post_action(&mut self, action: &str) {
         let Some(server) = self.server.clone() else {
             return;
         };
-
         let Some(id) = self.comp_id else { return };
-
         let url = format!("http://{server}/api/comps/{id}/{action}");
         match self.http.post(&url).send() {
             Ok(response) => {
@@ -189,11 +171,9 @@ impl eframe::App for ClientApp {
     fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
         theme::get_window_bg_color()
     }
-
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.poll();
         ui.ctx().request_repaint_after(Duration::from_secs(1));
-
         // -----------------
         // Connection screen
         // -----------------
@@ -213,32 +193,22 @@ impl eframe::App for ClientApp {
 
                     ui.vertical(|ui| {
                         self.add_header(ui, None, None, None, None);
-
                         ui.add_space(16.0);
-
                         self.labeled_input(ui, "Номер ПК", "Например, 3", ClientField::CompID);
-
                         ui.add_space(16.0);
-
                         self.labeled_input(
                             ui,
                             "Адрес сервера",
                             "server.example.com:3000",
                             ClientField::Server,
                         );
-
                         ui.add_space(16.0);
-
-                        let response = ui::add_button(
-                            ui,
-                            egui::vec2(ui.available_width(), 64.0),
-                            theme::ACCENT,
-                            theme::TEXT_ON_ACCENT,
-                            "Подключиться",
-                            16.0,
-                        );
-
-                        if response.clicked() {
+                        if shared::widgets::add_button(ui, Button {
+                            dims: (ui.available_width(), 64.0),
+                            text: "Подключиться".to_string(),
+                            size: 16,
+                            ..Default::default()
+                        }).clicked() {
                             self.set_server();
                             if let Ok(id) = self.comp_id_input.trim().parse::<u8>() {
                                 if !self.register(id) {
@@ -280,14 +250,12 @@ impl eframe::App for ClientApp {
                                 Some(theme::IDLE_DOT),
                                 None,
                             );
-
                             egui::Frame::new().show(ui, |ui| {
                                 ui.set_height(ui.available_height() - 16.0 - 64.0 - 32.0);
                                 ui.set_width(ui.available_width());
 
                                 ui.vertical_centered(|ui| {
                                     ui.add_space(46.5);
-
                                     shared::widgets::rich_label(
                                         ui,
                                         "Готов к работе?",
@@ -296,7 +264,6 @@ impl eframe::App for ClientApp {
                                         600,
                                     );
                                     ui.add_space(5.0);
-
                                     shared::widgets::rich_label(
                                         ui,
                                         "Запусти машины, но не входи в аккаунт!",
@@ -306,9 +273,7 @@ impl eframe::App for ClientApp {
                                     );
                                 });
                             });
-
                             ui.add_space(16.0);
-
                             let button = shared::widgets::Button {
                                 dims: (ui.available_width(), 64.0),
                                 text: "Начать".to_string(),
@@ -321,7 +286,6 @@ impl eframe::App for ClientApp {
 
                     self.error_label(ui);
                 }
-
                 // --------------
                 // Working screen
                 // --------------
@@ -343,7 +307,6 @@ impl eframe::App for ClientApp {
                                 Some(theme::WORKING_DOT),
                                 Some("В работе"),
                             );
-
                             egui::Frame::new().show(ui, |ui| {
                                 ui.set_height(ui.available_height() - 16.0 - 64.0 - 32.0);
                                 ui.set_width(ui.available_width());
@@ -354,9 +317,7 @@ impl eframe::App for ClientApp {
                                     self.info_card(ui, started_at, ClientInfo::Passed, (2, 1));
                                 });
                             });
-
                             ui.add_space(16.0);
-
                             let button = shared::widgets::Button {
                                 dims: (ui.available_width(), 64.0),
                                 text: "Завершить".to_string(),
@@ -366,10 +327,8 @@ impl eframe::App for ClientApp {
                                 self.post_action("finish");
                             }
                         });
-
                     self.error_label(ui);
                 }
-
                 // -------------
                 // Review screen
                 // -------------
@@ -391,7 +350,6 @@ impl eframe::App for ClientApp {
                                 Some(theme::REVIEW_DOT),
                                 Some("На проверке"),
                             );
-
                             egui::Frame::new().show(ui, |ui| {
                                 ui.set_height(ui.available_height() - 16.0 - 32.0);
                                 ui.set_width(ui.available_width());
@@ -402,9 +360,7 @@ impl eframe::App for ClientApp {
                                         |ui| {
                                             ui.set_height(ui.available_height());
                                             ui.set_width(ui.available_width());
-
                                             ui.add_space(100.0);
-
                                             shared::widgets::rich_label(
                                                 ui,
                                                 "Ожидайте результатов проверки",
@@ -412,7 +368,6 @@ impl eframe::App for ClientApp {
                                                 theme::TEXT,
                                                 600,
                                             );
-
                                             ui.add_space(116.0);
                                         },
                                     );
@@ -422,7 +377,6 @@ impl eframe::App for ClientApp {
 
                     self.error_label(ui);
                 }
-
                 // -----------
                 // Done screen
                 // -----------
@@ -443,16 +397,13 @@ impl eframe::App for ClientApp {
                             Some(theme::DONE), Some(theme::DONE_FG),
                             Some(theme::DONE_DOT), Some("Проверено")
                         );
-
                         ui.add_space(89.0);
-
                         egui::Frame::new().show(ui, |ui| {
                             ui.set_width(ui.available_width());
                             ui.set_height(49.0);
                             ui.vertical_centered(|ui| {
                                 egui::Frame::new().show(ui, |ui| {
-                                    ui.set_width(196.0);
-
+                                    ui.set_width(170.0);
                                     ui.horizontal(|ui| {
                                         shared::widgets::rich_label(ui,
                                             "Результат:", 
@@ -473,14 +424,12 @@ impl eframe::App for ClientApp {
                                 });
                                 egui::Frame::new().show(ui, |ui| {
                                     ui.set_width(83.0);
-
                                     ui.horizontal(|ui| {
                                         shared::widgets::rich_label(ui,
                                             "Время:", 
                                             12, theme::TEXT_DIM, 400
                                         );
                                         ui.add_space(4.0);
-
                                         if let (Some(started_at), Some(finished_at)) = (started_at, finished_at) {
                                             let duration = shared::format_duration(started_at, finished_at);
                                             shared::widgets::rich_label(ui,
@@ -497,10 +446,8 @@ impl eframe::App for ClientApp {
 
                         ui.add_space(89.0);
                     });
-
                     self.error_label(ui);
                 }
-
                 // -------------
                 // Banned screen
                 // -------------
@@ -522,9 +469,7 @@ impl eframe::App for ClientApp {
                                 Some(theme::BANNED_DOT),
                                 Some("BAN"),
                             );
-
                             ui.add_space(90.5);
-
                             ui.vertical_centered(|ui| {
                                 shared::widgets::rich_label(
                                     ui,
@@ -534,13 +479,10 @@ impl eframe::App for ClientApp {
                                     600,
                                 );
                             });
-
                             ui.add_space(90.5);
                         });
-
                     self.error_label(ui);
                 }
-
                 _ => {}
             }
         }

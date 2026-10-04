@@ -1,7 +1,6 @@
 use crate::{ClientApp, ClientField, ClientInfo};
 use eframe::egui::{
-    Align, Align2, Color32, CornerRadius, FontFamily, FontId, Frame, Layout, Margin, Response,
-    Sense, Stroke, Ui, Vec2,
+    Align, Color32, Frame, Layout, Margin, Stroke, Ui,
 };
 use shared::theme;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -32,11 +31,10 @@ impl ClientApp {
                         dims: (308.0, 16.0),
                         margin: Margin::same(16 - offset as i8),
                         stroke,
-                        buf: buf.to_string(),
                         hint: hint.to_string(),
                         ..Default::default()
                     };
-                    *focus_buf = shared::widgets::add_input(ui, input).has_focus();
+                    *focus_buf = shared::widgets::add_input(ui, input, buf).has_focus();
                 });
             });
         });
@@ -55,11 +53,9 @@ impl ClientApp {
         };
     }
 
-    ///
     /// Draws a time-info card, used in `Status::Working` screen
-    ///
+    /// 
     /// `card_of` - (cards_count, card_index)
-    ///
     pub fn info_card(
         &mut self,
         ui: &mut Ui,
@@ -119,9 +115,7 @@ impl ClientApp {
             });
     }
 
-    ///
     /// Draws a header of ClientApp
-    ///
     pub fn add_header(
         &mut self,
         ui: &mut Ui,
@@ -183,27 +177,4 @@ impl ClientApp {
             });
         });
     }
-}
-/// Draws a button with adaptive width
-pub fn add_button(
-    ui: &mut Ui,
-    desired_size: Vec2,
-    bg: Color32,
-    fg: Color32,
-    text: &str,
-    font_size: f32,
-) -> Response {
-    let (rect, response) = ui.allocate_exact_size(desired_size, Sense::click());
-
-    ui.painter().rect_filled(rect, CornerRadius::same(8), bg);
-
-    // center text
-    ui.painter().text(
-        rect.center(),
-        Align2::CENTER_CENTER,
-        text,
-        FontId::new(font_size, FontFamily::Name("Inter-SemiBold".into())),
-        fg,
-    );
-    response
 }

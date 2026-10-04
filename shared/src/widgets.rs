@@ -10,7 +10,6 @@ pub struct Input {
     pub radius: u8,
     pub margin: Margin,
     pub stroke: Stroke,
-    pub buf: String,
     pub hint: String,
     pub hint_color: Color32,
     pub hint_size: i32,
@@ -25,7 +24,6 @@ impl Default for Input {
                 width: 1.0,
                 color: theme::TEXT_DIM,
             },
-            buf: String::new(),
             hint: "Enter your text...".to_string(),
             hint_color: theme::TEXT_DIM,
             hint_size: 16,
@@ -121,7 +119,7 @@ pub fn add_button(ui: &mut Ui, button: Button) -> Response {
 }
 
 /// Draws an input area. Not for updates on loosing focus
-pub fn add_input(ui: &mut Ui, input: &mut Input) -> Response {
+pub fn add_input(ui: &mut Ui, input: &mut Input, buf: &mut String) -> Response {
     let resp = Frame::new()
         .corner_radius(input.radius)
         .inner_margin(input.margin)
@@ -130,7 +128,7 @@ pub fn add_input(ui: &mut Ui, input: &mut Input) -> Response {
             ui.set_width(input.dims.0);
             ui.add_sized(
                 Vec2::new(input.dims.0, input.dims.1),
-                TextEdit::singleline(&mut input.buf)
+                TextEdit::singleline(buf)
                     .font(FontId::new(
                         input.hint_size as f32,
                         FontFamily::Name("Inter".into()),

@@ -30,7 +30,6 @@ fn main() -> eframe::Result<()> {
         Box::new(|cc| {
             theme::add_fonts(&cc.egui_ctx);
             theme::apply(&cc.egui_ctx);
-
             Ok(Box::new(app))
         }),
     )
@@ -162,7 +161,6 @@ impl eframe::App for AdminApp {
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
                 ui.set_height(ui.available_height());
-
                 ui.scope(|ui| {
                     ui.spacing_mut().item_spacing.y = 0.0;
                     // ------
@@ -190,7 +188,6 @@ impl eframe::App for AdminApp {
                                 }
                             })
                         });
-
                     // ----------
                     // Error line
                     // ----------
