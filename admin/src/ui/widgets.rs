@@ -1,6 +1,4 @@
-use eframe::egui::{
-    Color32, Frame, Margin, Sense, Ui, Vec2,
-};
+use eframe::egui::{Color32, Frame, Margin, Sense, Ui, Vec2};
 use shared::{theme, widgets};
 
 ///

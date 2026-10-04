@@ -4,8 +4,6 @@ use eframe::egui::{
 
 use std::sync::Arc;
 
-
-
 pub const BG: Color32 = Color32::from_rgb(255, 255, 255);
 pub const PANEL_BG: Color32 = Color32::from_rgb(255, 255, 255);
 pub const TEXT: Color32 = Color32::from_rgb(23, 32, 51);
@@ -39,7 +37,7 @@ pub const THIN_LINE: Color32 = Color32::from_rgb(233, 233, 233);
 
 ///
 /// Applies theme colors to App
-/// 
+///
 pub fn apply(ctx: &Context) {
     let mut visuals = Visuals::light();
     visuals.panel_fill = PANEL_BG;
@@ -64,7 +62,6 @@ pub fn get_window_bg_color() -> [f32; 4] {
     [BG.r() as f32, BG.g() as f32, BG.b() as f32, BG.a() as f32]
 }
 
-
 ///
 /// Loads fonts into app creation context
 ///
@@ -74,19 +71,24 @@ pub fn add_fonts(ctx: &Context) {
     // Fonts listed here
     let fonts: &[(&str, &[u8])] = &[
         ("Inter", include_bytes!("../../assets/fonts/Inter.ttf")),
-        ("Inter-SemiBold", include_bytes!("../../assets/fonts/Inter-SemiBold.ttf")),
-        ("Inter-Bold", include_bytes!("../../assets/fonts/Inter-Bold.ttf")),
+        (
+            "Inter-SemiBold",
+            include_bytes!("../../assets/fonts/Inter-SemiBold.ttf"),
+        ),
+        (
+            "Inter-Bold",
+            include_bytes!("../../assets/fonts/Inter-Bold.ttf"),
+        ),
     ];
 
     // Insert every font to `FontDefinition`
     for (name, bytes) in fonts {
-        fonts_def.font_data.insert(
-            name.to_string(),
-            Arc::new(FontData::from_static(bytes))
-        );
+        fonts_def
+            .font_data
+            .insert(name.to_string(), Arc::new(FontData::from_static(bytes)));
         fonts_def.families.insert(
             FontFamily::Name(name.to_string().into()),
-            vec![name.to_string()]
+            vec![name.to_string()],
         );
     }
 

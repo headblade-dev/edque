@@ -1,27 +1,18 @@
 use shared::CompState;
-use std::{
-    collections::HashMap,
-    fs,
-    io,
-    path::Path,
-};
+use std::{collections::HashMap, fs, io, path::Path};
 
-///
 /// Loads data from state file
-/// 
 pub fn load(path: &Path) -> io::Result<HashMap<u8, CompState>> {
     if !path.exists() {
         return Ok(HashMap::new());
     }
     let data = fs::read_to_string(path)?;
-    let map: HashMap<u8, CompState> = serde_json::from_str(&data)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let map: HashMap<u8, CompState> =
+        serde_json::from_str(&data).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     Ok(map)
 }
 
-///
 /// Saves data to state file
-///
 pub fn save(path: &Path, map: &HashMap<u8, CompState>) -> io::Result<()> {
     let json = serde_json::to_string_pretty(map)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;

@@ -4,9 +4,9 @@ use shared::{CompState, ScoreRequest};
 impl AdminApp {
     ///
     /// Sets score for given computer
-    /// 
+    ///
     pub fn set_score(&mut self, comp_id: u8, score: u16) {
-        if let None = self.server {
+        if self.server.is_none() {
             return;
         }
         let server = self.server.clone().unwrap();
@@ -20,7 +20,6 @@ impl AdminApp {
                     if let Some(entry) = self.comps.iter_mut().find(|c| c.comp_id == comp_id) {
                         self.error = None;
                         entry.score = s.score;
-                        return;
                     } else {
                         self.error = Some(format!("Компьютер #{} не найден", comp_id));
                     }
@@ -30,7 +29,7 @@ impl AdminApp {
                 }
             },
             Err(_) => {
-                self.error = Some(format!("Ошибка отправки результатов проверки"));
+                self.error = Some("Ошибка отправки результатов проверки".to_string());
             }
         }
     }
@@ -39,7 +38,7 @@ impl AdminApp {
     /// Resets values of given computer
     ///
     pub fn reset(&mut self, comp_id: u8) {
-        if let None = self.server {
+        if self.server.is_none() {
             return;
         }
         let server = self.server.clone().unwrap();
@@ -61,7 +60,7 @@ impl AdminApp {
                 }
             },
             Err(_) => {
-                self.error = Some(format!("Ошибка отправки запроса о сбросе компьютера"));
+                self.error = Some("Ошибка отправки запроса о сбросе компьютера".to_string());
             }
         }
 
@@ -72,7 +71,7 @@ impl AdminApp {
     /// Sends ban to given computer
     ///
     pub fn ban(&mut self, comp_id: u8) {
-        if let None = self.server {
+        if self.server.is_none() {
             return;
         }
         let server = self.server.clone().unwrap();
@@ -94,7 +93,7 @@ impl AdminApp {
                 }
             },
             Err(_) => {
-                self.error = Some(format!("Ошибка отправки запроса о блокировке компьютера"));
+                self.error = Some("Ошибка отправки запроса о блокировке компьютера".to_string());
             }
         }
 
@@ -105,7 +104,7 @@ impl AdminApp {
     /// Sets status of given computer to `Working` (if student want to resume his work)
     ///
     pub fn resume(&mut self, comp_id: u8) {
-        if let None = self.server {
+        if self.server.is_none() {
             return;
         }
         let server = self.server.clone().unwrap();
@@ -127,9 +126,7 @@ impl AdminApp {
                 }
             },
             Err(_) => {
-                self.error = Some(format!(
-                    "Ошибка отправки запроса о возобновлении компьютера"
-                ));
+                self.error = Some("Ошибка отправки запроса о возобновлении компьютера".to_string());
             }
         }
     }

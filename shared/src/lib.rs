@@ -1,5 +1,3 @@
-use std::u16;
-
 use serde::{Deserialize, Serialize};
 
 pub mod theme;
@@ -34,7 +32,7 @@ pub struct CompState {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RegisterRequest {
     pub comp_id: u8,
-    pub hostname: Option<String>
+    pub hostname: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -49,7 +47,7 @@ pub struct ReportRequest {
 
 ///
 /// Formats score to `String` (245_u16 -> "24.5")
-/// 
+///
 pub fn format_score(score: Score) -> String {
     format!("{}.{}", score / 10, score % 10)
 }
@@ -61,7 +59,7 @@ pub fn parse_score(s: &str) -> Option<Score> {
     }
 
     let (int_part, frac_part) = match s.split_once('.') {
-        Some((i,f)) => (i, f),
+        Some((i, f)) => (i, f),
         None => (s, ""),
     };
 
@@ -86,7 +84,7 @@ pub fn parse_score(s: &str) -> Option<Score> {
 
 ///
 /// Calculates duration from `start` to `end` and formats it to `String`
-/// 
+///
 pub fn format_duration(start: u64, end: u64) -> String {
     let secs = end.saturating_sub(start);
     format!("{}:{:02}", secs / 60, secs % 60)
@@ -94,9 +92,11 @@ pub fn format_duration(start: u64, end: u64) -> String {
 
 ///
 /// Formats time in seconds since Unix Epoch to `String`
-/// 
+///
 pub fn format_time(secs: Option<u64>, print_secs: bool) -> String {
-    let Some(t) = secs else { return "-".to_string() };
+    let Some(t) = secs else {
+        return "-".to_string();
+    };
 
     let tz_offset = 4 * 3600;
     let local = t + tz_offset;
@@ -104,9 +104,9 @@ pub fn format_time(secs: Option<u64>, print_secs: bool) -> String {
     let secs_in_day = local % 86400;
     let h = secs_in_day / 3600;
     let m = (secs_in_day % 3600) / 60;
-    if print_secs { 
-        let s =  (secs_in_day) % 60; 
-        format!("{:02}:{:02}:{:02}", h, m ,s)
+    if print_secs {
+        let s = (secs_in_day) % 60;
+        format!("{:02}:{:02}:{:02}", h, m, s)
     } else {
         format!("{:02}:{:02}", h, m)
     }

@@ -5,9 +5,8 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-serde.workspace = true
 serde_json.workspace = true
 axum.workspace = true
-tokio = { version = "1.53.1", features = ["rt-multi-thread", "net", "macros"] }
+tokio = { version = "1.53.2", features = ["rt-multi-thread", "net", "macros"] }
 
 shared = { path = "../shared" }

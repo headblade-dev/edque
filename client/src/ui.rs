@@ -7,9 +7,7 @@ use shared::theme;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 impl ClientApp {
-    ///
     /// Draws a `TextEdit` with `Label` from left side
-    ///
     pub fn labeled_input(&mut self, ui: &mut Ui, label: &str, hint: &str, field: ClientField) {
         let (buf, focus_buf) = match field {
             ClientField::CompID => (&mut self.comp_id_input, &mut self.comp_id_input_focused),
@@ -21,7 +19,6 @@ impl ClientApp {
             ui.set_height(64.0);
 
             ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
-                #[rustfmt::skip]
                 shared::widgets::rich_label(ui, label, 15, theme::TEXT, 600);
 
                 let (offset, stroke) = if *focus_buf {
@@ -31,20 +28,15 @@ impl ClientApp {
                 };
 
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    #[rustfmt::skip]
                     let input = &mut shared::widgets::Input {
                         dims: (308.0, 16.0),
                         margin: Margin::same(16 - offset as i8),
-                        stroke: stroke,
+                        stroke,
                         buf: buf.to_string(),
                         hint: hint.to_string(),
                         ..Default::default()
                     };
-                    if shared::widgets::add_input(ui, input).has_focus() {
-                        *focus_buf = true;
-                    } else {
-                        *focus_buf = false;
-                    }
+                    *focus_buf = shared::widgets::add_input(ui, input).has_focus();
                 });
             });
         });
@@ -57,11 +49,7 @@ impl ClientApp {
                 ui.set_height(ui.available_height());
 
                 ui.vertical_centered(|ui| {
-                    #[rustfmt::skip]
-                    shared::widgets::rich_label(ui, 
-                        &e, 
-                        12, theme::ERR, 500
-                    );
+                    shared::widgets::rich_label(ui, &e, 12, theme::ERR, 500);
                 });
             });
         };
@@ -104,11 +92,7 @@ impl ClientApp {
                         ClientInfo::Passed => "Прошло",
                     };
 
-                    #[rustfmt::skip]
-                    shared::widgets::rich_label(ui, 
-                        &text, 
-                        12, theme::TEXT_DIM, 400
-                    );
+                    shared::widgets::rich_label(ui, text, 12, theme::TEXT_DIM, 400);
 
                     ui.add_space(4.0);
 
@@ -130,10 +114,7 @@ impl ClientApp {
                             Some("Ошибка получения временной отметки от сервера".to_string());
                     }
 
-                    #[rustfmt::skip]
-                    shared::widgets::rich_label(ui, 
-                        &time, 
-                        18, theme::TEXT, 500);
+                    shared::widgets::rich_label(ui, &time, 18, theme::TEXT, 500);
                 });
             });
     }
@@ -154,11 +135,7 @@ impl ClientApp {
             ui.set_height(64.0);
 
             ui.horizontal(|ui| {
-                #[rustfmt::skip]
-                    shared::widgets::rich_label(ui, 
-                        "edque - клиент", 
-                        32, theme::TEXT, 600
-                    );
+                shared::widgets::rich_label(ui, "edque - клиент", 32, theme::TEXT, 600);
 
                 if let (Some(status_bg), Some(status_dot)) = (status_bg, status_dot) {
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -172,10 +149,12 @@ impl ClientApp {
                                 if let (Some(status_text), Some(status_fg)) =
                                     (status_text, status_fg)
                                 {
-                                    #[rustfmt::skip]
-                                    shared::widgets::rich_label(ui, 
-                                        status_text, 
-                                        13, status_fg, 400
+                                    shared::widgets::rich_label(
+                                        ui,
+                                        status_text,
+                                        13,
+                                        status_fg,
+                                        400,
                                     );
                                 }
 
@@ -191,11 +170,13 @@ impl ClientApp {
                         ui.add_space(10.0);
 
                         if let Some(id) = self.comp_id {
-                            #[rustfmt::skip]
-                                shared::widgets::rich_label(ui, 
-                                    &format!("Рабочий стол #{}", id), 
-                                    13, theme::TEXT_DIM, 500
-                                );
+                            shared::widgets::rich_label(
+                                ui,
+                                &format!("Рабочий стол #{}", id),
+                                13,
+                                theme::TEXT_DIM,
+                                500,
+                            );
                         };
                     });
                 }
@@ -203,10 +184,7 @@ impl ClientApp {
         });
     }
 }
-
-///
 /// Draws a button with adaptive width
-/// 
 pub fn add_button(
     ui: &mut Ui,
     desired_size: Vec2,

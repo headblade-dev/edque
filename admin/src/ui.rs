@@ -3,7 +3,7 @@ use eframe::egui::{
     Align, Align2, Color32, FontFamily, FontId, Frame, Layout, Margin, Sense, Stroke, StrokeKind,
     TextEdit, Ui, Vec2,
 };
-use shared::{theme, Status::*};
+use shared::{Status::*, theme};
 
 pub mod widgets;
 
@@ -42,27 +42,41 @@ impl AdminApp {
                 true => (theme::ACCENT_BG, theme::ACCENT_DIM, theme::ACCENT),
             };
 
-            #[rustfmt::skip]
             let (status_bg, status_fg, status_dot, status_text, buttons) = match status {
                 Some(Idle) => (
-                    theme::IDLE, theme::IDLE_FG, theme::IDLE_DOT,
-                    "Простаивает", &["ban"] as &[&str],
+                    theme::IDLE,
+                    theme::IDLE_FG,
+                    theme::IDLE_DOT,
+                    "Простаивает",
+                    &["ban"] as &[&str],
                 ),
                 Some(Working) => (
-                    theme::WORKING, theme::WORKING_FG, theme::WORKING_DOT,
-                    "В работе", &["ban", "reset"] as &[&str],
+                    theme::WORKING,
+                    theme::WORKING_FG,
+                    theme::WORKING_DOT,
+                    "В работе",
+                    &["ban", "reset"] as &[&str],
                 ),
                 Some(ReviewRequired) => (
-                    theme::REVIEW, theme::REVIEW_FG, theme::REVIEW_DOT,
-                    "Ждёт проверки", &["ban", "resume"] as &[&str],
+                    theme::REVIEW,
+                    theme::REVIEW_FG,
+                    theme::REVIEW_DOT,
+                    "Ждёт проверки",
+                    &["ban", "resume"] as &[&str],
                 ),
                 Some(Done) => (
-                    theme::DONE, theme::DONE_FG, theme::DONE_DOT,
-                    "Проверен", &["ban", "resume"] as &[&str],
+                    theme::DONE,
+                    theme::DONE_FG,
+                    theme::DONE_DOT,
+                    "Проверен",
+                    &["ban", "resume"] as &[&str],
                 ),
                 Some(Banned) => (
-                    theme::BANNED, theme::BANNED_FG, theme::BANNED_DOT,
-                    "Блокировка", &["reset"] as &[&str],
+                    theme::BANNED,
+                    theme::BANNED_FG,
+                    theme::BANNED_DOT,
+                    "Блокировка",
+                    &["reset"] as &[&str],
                 ),
                 _ => return,
             };
@@ -94,29 +108,38 @@ impl AdminApp {
                         ui.add_space(10.0);
 
                         // CompID
-                        #[rustfmt::skip]
-                        shared::widgets::rich_label_sized(ui,
+
+                        shared::widgets::rich_label_sized(
+                            ui,
                             (24.0, 17.0),
                             &comp_id.to_string(),
-                            14, theme::TEXT, 500
+                            14,
+                            theme::TEXT,
+                            500,
                         );
                         ui.add_space(10.0);
 
                         // Started at
-                        #[rustfmt::skip]
-                        shared::widgets::rich_label_sized(ui,
+
+                        shared::widgets::rich_label_sized(
+                            ui,
                             (40.0, 17.0),
                             &started_at,
-                            14, theme::TEXT, 500
+                            14,
+                            theme::TEXT,
+                            500,
                         );
                         ui.add_space(10.0);
 
                         // Finished at
-                        #[rustfmt::skip]
-                        shared::widgets::rich_label_sized(ui,
+
+                        shared::widgets::rich_label_sized(
+                            ui,
                             (40.0, 17.0),
                             &finished_at,
-                            14, theme::TEXT, 500
+                            14,
+                            theme::TEXT,
+                            500,
                         );
                         ui.add_space(10.0);
 
@@ -154,9 +177,9 @@ impl AdminApp {
         ui.painter()
             .rect_stroke(rect, 11, Stroke::new(1.0, btn_fg), StrokeKind::Outside);
 
-        #[rustfmt::skip]
         ui.painter().text(
-            rect.center(), Align2::CENTER_CENTER,
+            rect.center(),
+            Align2::CENTER_CENTER,
             btn_text,
             FontId::new(10.0, FontFamily::Name("Inter-SemiBold".into())),
             btn_fg,

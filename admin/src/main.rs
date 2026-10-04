@@ -1,22 +1,21 @@
 use eframe::egui;
-use shared::{theme, CompState, ReportRequest};
+use shared::{CompState, ReportRequest, theme};
 use std::{
     collections::HashMap,
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 
-mod ui;
-mod post;
 use ui::widgets;
+
+mod post;
+mod ui;
 
 fn main() -> eframe::Result<()> {
     // create window structure
     let app = AdminApp::new();
-
     // window parameters (size, pos, icon, etc.)
     let icon = eframe::icon_data::from_png_bytes(include_bytes!("../../assets/Icon.png"))
         .expect("Icon must be valid PNG");
-
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([600.0, 832.0])
@@ -24,7 +23,6 @@ fn main() -> eframe::Result<()> {
             .with_icon(icon),
         ..Default::default()
     };
-
     // start window
     eframe::run_native(
         "edque - admin",
@@ -50,15 +48,12 @@ struct AdminApp {
 }
 
 impl AdminApp {
-    /// 
     /// Creates http-client and AdminApp structure
-    /// 
     fn new() -> Self {
         let http = reqwest::blocking::Client::builder()
             .timeout(Duration::from_secs(5))
             .build()
             .expect("Failed to build HTTP client");
-
         Self {
             http,
             score_bufs: HashMap::new(),
@@ -70,25 +65,18 @@ impl AdminApp {
             server_input: String::new(),
         }
     }
-
-    ///
     /// Send GET /api/comps with interval
-    /// 
     fn poll(&mut self) {
-        if let None = self.server {
+        if self.server.is_none() {
             return;
         }
-
-        if let Some(t) = self.last_poll {
-            if t.elapsed() < Duration::from_secs(1) {
-                return;
-            }
+        if let Some(t) = self.last_poll
+            && t.elapsed() < Duration::from_secs(1)
+        {
+            return;
         }
-
         let server = self.server.clone().unwrap();
-
         let url = format!("http://{}/api/comps", server);
-
         match self.http.get(&url).send() {
             Ok(resp) => match resp.json::<Vec<CompState>>() {
                 Ok(s) => {
@@ -102,46 +90,36 @@ impl AdminApp {
                 }
             },
             Err(_) => {
-                self.error = Some(format!("Ошибка подключения к серверу"));
+                self.error = Some("Ошибка подключения к серверу".to_string());
             }
         }
     }
-
-    ///
     /// Saves selected computers to .CSV report
-    /// 
     /// Gets .CSV from server and saves it to `~/.local/share/edque` folder
-    /// 
     fn save_report(&mut self) {
-        if let None = self.server {
+        if self.server.is_none() {
             self.error = Some("Ошибка подключения к серверу".to_string());
             return;
         }
-
         if self.selected_comps.is_empty() {
             self.error = Some("Для сохранения отчёта сначала нужно выбрать компьютеры".to_string());
             return;
         }
-
         let server = self.server.clone().unwrap();
-
         let url = format!("http://{}/api/report", server);
         let body = ReportRequest {
             comp_ids: self.selected_comps.clone(),
         };
-
         let resp =
             self.http.post(&url).json(&body).send().map_err(|e| {
                 self.error = Some(format!("Ошибка при запросе отчёта с сервера: {e}"))
             });
-
         if let Ok(resp) = resp {
             let csv = resp.text().map_err(|e| {
                 self.error = Some(format!(
                     "Ошибка при чтении отчёта, полученного с сервера: {e}"
                 ))
             });
-
             if let Ok(csv) = csv {
                 let timestamp = shared::format_time(
                     Some(
@@ -152,23 +130,16 @@ impl AdminApp {
                     ),
                     true,
                 );
-
                 let home = std::env::var("HOME").expect("HOME not set");
-
                 let path = format!("{}/.local/share/edque/edque_report_{timestamp}.csv", home);
-
                 let _ = std::fs::write(&path, csv).map_err(|e| {
                     self.error = Some(format!("Не удалось записать отчёт в файл: {e}"))
                 });
-
                 self.error = Some(format!("Отчёт успешно сохранён в {path}"));
             }
         }
     }
-
-    ///
     /// Sets server address from buffer
-    /// 
     fn set_server(&mut self) {
         self.server = Some(self.server_input.clone());
     }
@@ -178,7 +149,6 @@ impl eframe::App for AdminApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.poll();
         ui.ctx().request_repaint_after(Duration::from_secs(1));
-
         // Main Frame
         egui::Frame::new()
             .fill(theme::BG)
@@ -200,7 +170,6 @@ impl eframe::App for AdminApp {
                     // ------
                     self.header(ui);
                     widgets::separator(ui);
-
                     // ----
                     // Body
                     // ----
@@ -236,7 +205,6 @@ impl eframe::App for AdminApp {
                         };
                     });
                     widgets::separator(ui);
-
                     // ------
                     // Footer
                     // ------

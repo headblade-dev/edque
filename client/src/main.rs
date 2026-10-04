@@ -1,5 +1,5 @@
 use eframe::egui;
-use shared::{theme, CompState, RegisterRequest, Status};
+use shared::{CompState, RegisterRequest, Status, theme};
 use std::time::{Duration, Instant};
 
 mod ui;
@@ -118,7 +118,7 @@ impl ClientApp {
                 }
             },
             Err(_) => {
-                self.error = Some(format!("Ошибка подключения к серверу"));
+                self.error = Some("Ошибка подключения к серверу".to_string());
                 false
             }
         }
@@ -134,10 +134,10 @@ impl ClientApp {
 
         let Some(id) = self.comp_id else { return };
 
-        if let Some(t) = self.last_poll {
-            if t.elapsed() < Duration::from_millis(500) {
-                return;
-            }
+        if let Some(t) = self.last_poll
+            && t.elapsed() < Duration::from_millis(500)
+        {
+            return;
         }
 
         self.last_poll = Some(Instant::now());
@@ -155,7 +155,7 @@ impl ClientApp {
                     ))
                 }
             },
-            Err(_) => self.error = Some(format!("Ошибка подключения к серверу")),
+            Err(_) => self.error = Some("Ошибка подключения к серверу".to_string()),
         }
     }
 
@@ -288,18 +288,22 @@ impl eframe::App for ClientApp {
                                 ui.vertical_centered(|ui| {
                                     ui.add_space(46.5);
 
-                                    #[rustfmt::skip]
-                                shared::widgets::rich_label(ui, 
-                                    "Готов к работе?", 
-                                    24, theme::TEXT, 600
-                                );
+                                    shared::widgets::rich_label(
+                                        ui,
+                                        "Готов к работе?",
+                                        24,
+                                        theme::TEXT,
+                                        600,
+                                    );
                                     ui.add_space(5.0);
 
-                                    #[rustfmt::skip]
-                                shared::widgets::rich_label(ui, 
-                                    "Запусти машины, но не входи в аккаунт!", 
-                                    16, theme::TEXT, 400
-                                );
+                                    shared::widgets::rich_label(
+                                        ui,
+                                        "Запусти машины, но не входи в аккаунт!",
+                                        16,
+                                        theme::TEXT,
+                                        400,
+                                    );
                                 });
                             });
 
@@ -332,11 +336,13 @@ impl eframe::App for ClientApp {
                             bottom: 0,
                         })
                         .show(ui, |ui| {
-                            #[rustfmt::skip]
-                        self.add_header(ui, 
-                            Some(theme::WORKING), Some(theme::WORKING_FG), 
-                            Some(theme::WORKING_DOT), Some("В работе")
-                        );
+                            self.add_header(
+                                ui,
+                                Some(theme::WORKING),
+                                Some(theme::WORKING_FG),
+                                Some(theme::WORKING_DOT),
+                                Some("В работе"),
+                            );
 
                             egui::Frame::new().show(ui, |ui| {
                                 ui.set_height(ui.available_height() - 16.0 - 64.0 - 32.0);
@@ -378,11 +384,13 @@ impl eframe::App for ClientApp {
                             bottom: 0,
                         })
                         .show(ui, |ui| {
-                            #[rustfmt::skip]
-                        self.add_header(ui, 
-                            Some(theme::REVIEW), Some(theme::REVIEW_FG), 
-                            Some(theme::REVIEW_DOT), Some("На проверке")
-                        );
+                            self.add_header(
+                                ui,
+                                Some(theme::REVIEW),
+                                Some(theme::REVIEW_FG),
+                                Some(theme::REVIEW_DOT),
+                                Some("На проверке"),
+                            );
 
                             egui::Frame::new().show(ui, |ui| {
                                 ui.set_height(ui.available_height() - 16.0 - 32.0);
@@ -397,11 +405,13 @@ impl eframe::App for ClientApp {
 
                                             ui.add_space(100.0);
 
-                                            #[rustfmt::skip]
-                                    shared::widgets::rich_label(ui, 
-                                        "Ожидайте результатов проверки", 
-                                        24, theme::TEXT, 600
-                                    );
+                                            shared::widgets::rich_label(
+                                                ui,
+                                                "Ожидайте результатов проверки",
+                                                24,
+                                                theme::TEXT,
+                                                600,
+                                            );
 
                                             ui.add_space(116.0);
                                         },
@@ -426,14 +436,11 @@ impl eframe::App for ClientApp {
                             top: 32,
                             bottom: 0,
                         })
-                    
                     .show(ui, |ui| {
                         ui.set_width(ui.available_width());
                         ui.set_height(ui.available_height() - 16.0 - 32.0);
-
-                        #[rustfmt::skip]
-                        self.add_header(ui, 
-                            Some(theme::DONE), Some(theme::DONE_FG), 
+                        self.add_header(ui,
+                            Some(theme::DONE), Some(theme::DONE_FG),
                             Some(theme::DONE_DOT), Some("Проверено")
                         );
 
@@ -447,8 +454,7 @@ impl eframe::App for ClientApp {
                                     ui.set_width(196.0);
 
                                     ui.horizontal(|ui| {
-                                        #[rustfmt::skip]
-                                        shared::widgets::rich_label(ui, 
+                                        shared::widgets::rich_label(ui,
                                             "Результат:", 
                                             24, theme::TEXT, 500
                                         );
@@ -456,24 +462,20 @@ impl eframe::App for ClientApp {
 
                                         if let Some(score) = score {
                                             let score_text = shared::format_score(score);
-
-                                            #[rustfmt::skip]
-                                            shared::widgets::rich_label(ui, 
-                                                &score_text, 
+                                            shared::widgets::rich_label(ui,
+                                                &score_text,
                                                 24, theme::TEXT, 700
                                             );
                                         } else {
                                             self.error = Some("Ошибка получения результатов проверки с сервера".to_string());
                                         }
                                     });
-                                });  
-                            
+                                });
                                 egui::Frame::new().show(ui, |ui| {
                                     ui.set_width(83.0);
 
                                     ui.horizontal(|ui| {
-                                        #[rustfmt::skip]
-                                        shared::widgets::rich_label(ui, 
+                                        shared::widgets::rich_label(ui,
                                             "Время:", 
                                             12, theme::TEXT_DIM, 400
                                         );
@@ -481,10 +483,8 @@ impl eframe::App for ClientApp {
 
                                         if let (Some(started_at), Some(finished_at)) = (started_at, finished_at) {
                                             let duration = shared::format_duration(started_at, finished_at);
-
-                                            #[rustfmt::skip]
-                                            shared::widgets::rich_label(ui, 
-                                                &duration, 
+                                            shared::widgets::rich_label(ui,
+                                                &duration,
                                                 12, theme::TEXT_DIM, 500
                                             );
                                         } else {
@@ -526,11 +526,13 @@ impl eframe::App for ClientApp {
                             ui.add_space(90.5);
 
                             ui.vertical_centered(|ui| {
-                                #[rustfmt::skip]
-                            shared::widgets::rich_label(ui, 
-                                "ЗАБЛОКИРОВАН", 
-                                40, theme::ERR, 600
-                            );
+                                shared::widgets::rich_label(
+                                    ui,
+                                    "ЗАБЛОКИРОВАН",
+                                    40,
+                                    theme::ERR,
+                                    600,
+                                );
                             });
 
                             ui.add_space(90.5);
