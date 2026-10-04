@@ -291,19 +291,13 @@ impl AdminApp {
             ui.horizontal_centered(|ui| {
                 // Report button
                 {
-                    let resp = shared::widgets::add_button(
-                        ui,
-                        (160.0, 36.0),
-                        8,
-                        theme::ACCENT,
-                        theme::TEXT_ON_ACCENT,
-                        None,
-                        "Сохранить отчёт",
-                        "Inter-SemiBold",
-                        13,
-                    );
-
-                    if resp.clicked() {
+                    let button = shared::widgets::Button {
+                        dims: (160.0, 36.0),
+                        text: "Начать".to_string(),
+                        size: 13,
+                        ..Default::default()
+                    };
+                    if shared::widgets::add_button(ui, button).clicked() {
                         self.save_report();
                     }
                 }
@@ -313,34 +307,30 @@ impl AdminApp {
                 shared::widgets::rich_label(ui, "Адрес сервера: ", 13, theme::TEXT_DIM, 400);
                 ui.add_space(8.0);
 
-                shared::widgets::add_input(
-                    ui,
-                    (160.0, 14.0),
-                    6,
-                    Margin::symmetric(8, 4),
-                    Stroke::new(1.0, theme::TEXT_DIM),
-                    &mut self.server_input,
-                    "server.example.com:3000",
-                    theme::TEXT_DIM,
-                    12,
-                );
+                let mut input = shared::widgets::Input {
+                    dims: (160.0, 14.0),
+                    radius: 6,
+                    margin: Margin::symmetric(8, 4),
+                    buf: self.server_input.to_string(),
+                    hint: "server.example.com:3000".to_string(),
+                    hint_size: 12,
+                    ..Default::default()
+                };
+                shared::widgets::add_input(ui, &mut input);
                 ui.add_space(12.0);
 
                 // Address apply button
                 {
-                    let resp = shared::widgets::add_button(
-                        ui,
-                        (97.0, 32.0),
-                        8,
-                        theme::ACCENT_BG,
-                        theme::ACCENT_DIM,
-                        Some(theme::ACCENT_DIM),
-                        "Применить",
-                        "Inter-SemiBold",
-                        13,
-                    );
-
-                    if resp.clicked() {
+                    let button = shared::widgets::Button {
+                        dims: (97.0, 32.0),
+                        bg: theme::ACCENT_BG,
+                        fg: theme::ACCENT_DIM,
+                        stroke_color: Some(theme::ACCENT_DIM),
+                        text: "Применить".to_string(),
+                        size: 13,
+                        ..Default::default()
+                    };
+                    if shared::widgets::add_button(ui, button).clicked() {
                         self.set_server();
                     }
                 }

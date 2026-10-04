@@ -32,13 +32,15 @@ impl ClientApp {
 
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     #[rustfmt::skip]
-                    let resp = shared::widgets::add_input(ui,
-                        (308.0, 16.0), 8, 
-                        Margin::same(16 - offset as i8),
-                        stroke,
-                        buf, hint, theme::TEXT_DIM, 16
-                    );
-                    if resp.has_focus() {
+                    let input = &mut shared::widgets::Input {
+                        dims: (308.0, 16.0),
+                        margin: Margin::same(16 - offset as i8),
+                        stroke: stroke,
+                        buf: buf.to_string(),
+                        hint: hint.to_string(),
+                        ..Default::default()
+                    };
+                    if shared::widgets::add_input(ui, input).has_focus() {
                         *focus_buf = true;
                     } else {
                         *focus_buf = false;

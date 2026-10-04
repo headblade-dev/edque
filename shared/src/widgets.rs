@@ -1,12 +1,59 @@
 use eframe::egui::{
-    Ui, Color32, Label, 
-    RichText, FontFamily, Vec2, 
-    Align2, FontId, Response, 
-    Stroke, StrokeKind, Sense,
-    Frame, Margin, TextEdit,
+    Align2, Color32, FontFamily, FontId, Frame, Label, Margin, Response, RichText, Sense, Stroke, StrokeKind, TextEdit, Ui, Vec2,
 };
 
-///
+use crate::theme;
+
+pub struct Input {
+    pub dims: (f32, f32),
+    pub radius: u8,
+    pub margin: Margin,
+    pub stroke: Stroke,
+    pub buf: String,
+    pub hint: String,
+    pub hint_color: Color32,
+    pub hint_size: i32,
+}
+impl Default for Input {
+    fn default() -> Self {
+        Self {
+            dims: (100.0, 100.0), 
+            radius: 8, 
+            margin: Margin::same(0), 
+            stroke: Stroke { width: 1.0, color: theme::TEXT_DIM }, 
+            buf: String::new(), 
+            hint: "Enter your text...".to_string(), 
+            hint_color: theme::TEXT_DIM, 
+            hint_size: 16 
+        }
+    }
+}
+
+pub struct Button {
+    pub dims: (f32, f32),
+    pub radius: u8,
+    pub bg: Color32,
+    pub fg: Color32,
+    pub stroke_color: Option<Color32>,
+    pub text: String,
+    pub font: String,
+    pub size: i32,
+}
+impl Default for Button {
+    fn default() -> Self {
+        Self {
+            dims: (300.0, 64.0),
+            radius: 8,
+            bg: theme::ACCENT,
+            fg: theme::TEXT_ON_ACCENT,
+            stroke_color: None,
+            text: "Кнопка".to_string(),
+            font: "Inter-SemiBold".to_string(),
+            size: 16,
+        }
+    }
+}
+
 /// Draws a `Label` with `RichText` inside of it
 /// 
 pub fn rich_label(ui: &mut Ui, text: &str, size: u8, color: Color32, weight: u16) {
@@ -42,22 +89,15 @@ pub fn rich_label_sized(ui: &mut Ui, dims: (f32, f32), text: &str, size: u8, col
 /// 
 pub fn add_button(
     ui: &mut Ui,
-    dims: (f32, f32),
-    radius: u8,
-    bg: Color32,
-    fg: Color32,
-    stroke_color: Option<Color32>,
-    text: &str,
-    font: &str,
-    size: i32,
+    button: Button,
 ) -> Response {
-    let (rect, resp) = ui.allocate_exact_size(Vec2::new(dims.0, dims.1), Sense::click());
+    let (rect, resp) = ui.allocate_exact_size(Vec2::new(button.dims.0, button.dims.1), Sense::click());
 
-    ui.painter().rect_filled(rect, radius, bg);
+    ui.painter().rect_filled(rect, button.radius, button.bg);
 
-    if let Some(stroke_color) = stroke_color {
+    if let Some(stroke_color) = button.stroke_color {
         ui.painter().rect_stroke(
-            rect, radius,
+            rect, button.radius,
             Stroke::new(1.0, stroke_color),
             StrokeKind::Outside,
         );
@@ -66,9 +106,9 @@ pub fn add_button(
     #[rustfmt::skip]
     ui.painter().text(
         rect.center(), Align2::CENTER_CENTER,
-        text,
-        FontId::new(size as f32, FontFamily::Name(font.into())),
-        fg,
+        button.text,
+        FontId::new(button.size as f32, FontFamily::Name(button.font.into())),
+        button.fg,
     );
     resp
 }
@@ -78,35 +118,28 @@ pub fn add_button(
 ///
 pub fn add_input(
     ui: &mut Ui,
-    dims: (f32, f32),
-    radius: u8,
-    margin: Margin,
-    stroke: Stroke,
-    buf: &mut String,
-    hint: &str,
-    hint_color: Color32,
-    hint_size: i32,
+    input: &mut Input,
 ) -> Response {
     let resp = Frame::new()
-        .corner_radius(radius)
-        .inner_margin(margin)
-        .stroke(stroke)
+        .corner_radius(input.radius)
+        .inner_margin(input.margin)
+        .stroke(input.stroke)
         .show(ui, |ui| {
-            ui.set_width(dims.0);
+            ui.set_width(input.dims.0);
             ui.add_sized(
-                Vec2::new(dims.0, dims.1),
-                TextEdit::singleline(buf)
+                Vec2::new(input.dims.0, input.dims.1),
+                TextEdit::singleline(&mut input.buf)
                     .font(
                         FontId::new(
-                            hint_size as f32, 
+                            input.hint_size as f32, 
                             FontFamily::Name("Inter".into())
                         )
                     )
                     .hint_text(
-                        RichText::new(hint)
+                        RichText::new(input.hint.clone())
                             .family(FontFamily::Name("Inter".into()))
-                            .size(hint_size as f32)
-                            .color(hint_color),
+                            .size(input.hint_size as f32)
+                            .color(input.hint_color),
                     )
                     .frame(Frame::NONE)
             )

@@ -305,13 +305,12 @@ impl eframe::App for ClientApp {
 
                             ui.add_space(16.0);
 
-                            #[rustfmt::skip]
-                        let response = shared::widgets::add_button(ui, 
-                            (ui.available_width(), 64.0), 8, 
-                            theme::ACCENT, theme::TEXT_ON_ACCENT, None, 
-                            "Начать", "Inter-SemiBold", 16);
-
-                            if response.clicked() {
+                            let button = shared::widgets::Button {
+                                dims: (ui.available_width(), 64.0),
+                                text: "Начать".to_string(),
+                                ..Default::default()
+                            };
+                            if shared::widgets::add_button(ui, button).clicked() {
                                 self.post_action("start");
                             }
                         });
@@ -352,13 +351,12 @@ impl eframe::App for ClientApp {
 
                             ui.add_space(16.0);
 
-                            #[rustfmt::skip]
-                        let response = shared::widgets::add_button(ui, 
-                            (ui.available_width(), 64.0), 8, 
-                            theme::ACCENT, theme::TEXT_ON_ACCENT, None, 
-                            "Завершить", "Inter-SemiBold", 16);
-
-                            if response.clicked() {
+                            let button = shared::widgets::Button {
+                                dims: (ui.available_width(), 64.0),
+                                text: "Завершить".to_string(),
+                                ..Default::default()
+                            };
+                            if shared::widgets::add_button(ui, button).clicked() {
                                 self.post_action("finish");
                             }
                         });
