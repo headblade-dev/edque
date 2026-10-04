@@ -11,9 +11,6 @@ Virtual queue program for training the speed of completing demo exams.
 - eframe (UI)
 - reqwest (HTTP requests)
 
-
--
-
 ## Features
 
 - **Client:** "Start", "Finish", "In progress" screen with time, results screen, ban screen
