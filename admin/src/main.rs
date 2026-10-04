@@ -151,12 +151,6 @@ impl eframe::App for AdminApp {
         // Main Frame
         egui::Frame::new()
             .fill(theme::BG)
-            .corner_radius(egui::CornerRadius {
-                nw: 24,
-                ne: 24,
-                sw: 14,
-                se: 14,
-            })
             .inner_margin(egui::Margin::ZERO)
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());

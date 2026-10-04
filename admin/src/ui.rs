@@ -282,7 +282,7 @@ impl AdminApp {
                 {
                     let button = shared::widgets::Button {
                         dims: (160.0, 36.0),
-                        text: "Начать".to_string(),
+                        text: "Сохранить отчёт".to_string(),
                         size: 13,
                         ..Default::default()
                     };
